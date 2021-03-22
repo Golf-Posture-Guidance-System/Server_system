@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+>
+
+
+    <View
+        android:id="@+id/background"
+        android:layout_width="0dp"
+        android:layout_height="380dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="-8dp"
+        android:background="@drawable/background">
+
+    </View>
+    <ImageButton
+        android:id="@+id/iconly_bulk"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="25dp"
+        android:background="@drawable/ic_arrow___left_circle"
+        />
+    <TextView
+        android:id="@+id/video"
+        android:layout_width="85dp"
+        android:layout_height="36dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="23dp"
+        android:text="Video"
+        android:textStyle="bold"
+        android:textSize="30sp"
+        android:textColor="#FFFFFF"
+        android:gravity="center_horizontal|top"
+        />
+
+    <FrameLayout
+        android:layout_width="343dp"
+        android:layout_height="250dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="104dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="16dp"
+        android:background="@drawable/rounded_frame"
+        android:outlineProvider="background"
+
+        >
+
+        <VideoView
+            android:id="@+id/video_card"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <ImageButton
+            android:id="@+id/Vidplay"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:background="@drawable/ic_play"
+            android:layout_alignParentLeft="true"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center"
+
+
+            />
+    </FrameLayout>
+
+
+    <TextView
+        android:layout_width="272dp"
+        android:layout_height="wrap_content"
+        android:text="위 영상으로 \n스윙을 분석하시겠습니까?"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="460dp"
+        />
+
+    <Button
+        android:id="@+id/send"
+        android:layout_width="111dp"
+        android:layout_height="50dp"
+        android:text="SEND"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="30dp"
+        android:background="@drawable/checkbutton"/>
+
+    <Button
+        android:id="@+id/retry"
+        android:layout_width="111dp"
+        android:layout_height="50dp"
+        android:text="RETRY"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="40dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="30dp"
+        android:background="@drawable/retrybutton"/>
+
+</RelativeLayout>

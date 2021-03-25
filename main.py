@@ -32,7 +32,6 @@ def register(msg_received):
     insert_query = "INSERT INTO users (id, psw, name, email) VALUES (%s, %s, %s, MD5(%s))"
     insert_values = (id, password, username, email)
     try:
-        userdao.py
         db_cursor.execute(insert_query, insert_values)
         chat_db.commit()
         return "success"

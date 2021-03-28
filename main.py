@@ -23,13 +23,13 @@ def register(msg_received):
     username = msg_received["username"]
     email = msg_received["useremail"]
 
-    select_query = "SELECT * FROM users where name = " + "'" + username + "'"
+    select_query = "SELECT * FROM users where name = " + "'" + id + "'"
     db_cursor.execute(select_query)
     records = db_cursor.fetchall()
     if len(records) != 0:
         return "Another user used the username. Please chose another username."
 
-    insert_query = "INSERT INTO users (id, psw, name, email) VALUES (%s, %s, %s, MD5(%s))"
+    insert_query = "INSERT INTO users (id, psw, name, email) VALUES (%s, MD5(%s), %s, %s)"
     insert_values = (id, password, username, email)
     try:
         db_cursor.execute(insert_query, insert_values)
@@ -40,9 +40,9 @@ def register(msg_received):
         return "failure"
 
 def login(msg_received):
-    username = msg_received["username"]
-    password = msg_received["password"]
-    select_query = "SELECT id FROM users where username = " + "'" + username + "' and password = " + "MD5('" + password + "')"
+    username = msg_received["userid"]
+    password = msg_received["userpwd"]
+    select_query = "SELECT name FROM users where id = " + "'" + username + "' and psw = " + "MD5('" + password + "')"
     db_cursor.execute(select_query)
     records = db_cursor.fetchall()
 

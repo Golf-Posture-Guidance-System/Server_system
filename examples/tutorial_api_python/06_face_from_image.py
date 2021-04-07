@@ -14,8 +14,8 @@ try:
         # Windows Import
         if platform == "win32":
             # Change these variables to point to the correct folder (Release/x64 etc.)
-            sys.path.append(dir_path + '/../../python/openpose/Release');
-            os.environ['PATH']  = os.environ['PATH'] + ';' + dir_path + '/../../x64/Release;' +  dir_path + '/../../bin;'
+            sys.path.append(dir_path + '/../../build/python/openpose/Release');
+            os.environ['PATH']  = os.environ['PATH'] + ';' + dir_path + '/../../build/x64/Release;' +  dir_path + '/../../build/bin;'
             import pyopenpose as op
         else:
             # Change these variables to point to the correct folder (Release/x64 etc.)
@@ -29,12 +29,12 @@ try:
 
     # Flags
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", default="../../../examples/media/COCO_val2014_000000000241.jpg", help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
+    parser.add_argument("--image_path", default="C:/Users/Administrator/Desktop/openpose/examples/media/COCO_val2014_000000000241.jpg", help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
     args = parser.parse_known_args()
 
     # Custom Params (refer to include/openpose/flags.hpp for more parameters)
     params = dict()
-    params["model_folder"] = "../../../models/"
+    params["model_folder"] = "C:/Users/Administrator/Desktop/openpose/models/"
     params["face"] = True
     params["face_detector"] = 2
     params["body"] = 0

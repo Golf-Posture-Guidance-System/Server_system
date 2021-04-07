@@ -12,9 +12,10 @@ try:
     try:
         # Windows Import
         if platform == "win32":
+            print("1" + dir_path);
             # Change these variables to point to the correct folder (Release/x64 etc.)
-            sys.path.append(dir_path + '/../../python/openpose/Release');
-            os.environ['PATH']  = os.environ['PATH'] + ';' + dir_path + '/../../x64/Release;' +  dir_path + '/../../bin;'
+            sys.path.append(dir_path + '/../../build/python/openpose/Release');
+            os.environ['PATH']  = os.environ['PATH'] + ';' + dir_path + '/../../build/x64/Release;' +  dir_path + '/../../build/bin;'
             import pyopenpose as op
         else:
             # Change these variables to point to the correct folder (Release/x64 etc.)
@@ -28,12 +29,12 @@ try:
 
     # Flags
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", default="../../../examples/media/COCO_val2014_000000000192.jpg", help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
+    parser.add_argument("--image_path", default="C:/Users/Administrator/Desktop/openpose/examples/media/video.avi", help="Process an image. Read all standard formats (jpg, png, bmp, etc.).")
     args = parser.parse_known_args()
 
     # Custom Params (refer to include/openpose/flags.hpp for more parameters)
     params = dict()
-    params["model_folder"] = "../../../models/"
+    params["model_folder"] = "C:/Users/Administrator/Desktop/openpose/models/"
 
     # Add others in path?
     for i in range(0, len(args[1])):
@@ -52,9 +53,45 @@ try:
     # oppython = op.OpenposePython()
 
     # Starting OpenPose
-    opWrapper = op.WrapperPython(op.ThreadManagerMode.Synchronous)
-    opWrapper.configure(params)
-    opWrapper.execute()
+    protoFile_body_25 = "C:/Users/Administrator/Desktop/openpose/models/pose/body_25/pose_deploy.prototxt"
+
+    weightsFile_body_25 = "C:/Users/Administrator/Desktop/openpose/models/pose/body_25/pose_iter_584000.caffemodel"
+
+    net = cv2.dnn.readNetFromCaffe(protoFile_body_25, weightsFile_body_25)
+
+    # GPU 사용
+    net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
+    net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
+
+
+    man = "C:/Users/Administrator/Desktop/openpose/examples/media/video.avi"
+    capture = cv2.VideoCapture(man)
+    datum = op.Datum()
+    datum.cvInputData = capture
+    while True:
+        now_frame_boy = capture.get(cv2.CAP_PROP_POS_FRAMES)
+        total_frame_boy = capture.get(cv2.CAP_PROP_FRAME_COUNT)
+
+        if now_frame_boy == total_frame_boy:
+            break
+
+        ret, frame_boy = capture.read()
+
+
+        print("Body keypoints: \n" + str(datum.poseKeypoints))
+        print("Face keypoints: \n" + str(datum.faceKeypoints))
+        print("Left hand keypoints: \n" + str(datum.handKeypoints[0]))
+        print("Right hand keypoints: \n" + str(datum.handKeypoints[1]))
+        cv2.imshow("Output_Keypoints", datum.cvOutputData)
+
+        if cv2.waitKey(10) == 27:  # esc 입력시 종료
+            break
+
+    capture.release()
+    cv2.destroyAllWindows()
+
+
+
 except Exception as e:
     print(e)
     sys.exit(-1)

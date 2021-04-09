@@ -1,16 +1,10 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-
 import cv2
 import json
 import math
 
 INF = 9999
 
-pose_idx = [20,37,53,68,69,75,90] #어,테,탑,다운,임펙,팔스,피니쉬 가 저장된 걸 반환받았다
+pose_idx = [20,37,53,68,69,75,90] #어,테,탑,다운,임펙,팔스,피니쉬가 저장된 걸 반환받았다
 ############################3
 vidcap = cv2.VideoCapture("golf.mp4")
 frame=[]
@@ -97,17 +91,32 @@ def cut_img(posepoints,pose_img,pose_index,size):
     cv2.waitKey()
     cv2.destroyAllWindows()
 
+    
+def get_center(point1,point2) :
+    x1 = point1.get('x')
+    y1 = point1.get('y')
+    x2 = point2.get('x')
+    y1 = point1.get('y')
 
-# In[10]:
-
+def draw_adress(img,posepoint) : #어드래스 이미지 골격을 그리는 함수
+    result = img #얕은 복사 따라서 img배열 자체에 그림이 그려진다.
+    red_color = (0,0,255)
+    
+    lsx = int(posepoint[2].get('x')) #왼어깨x좌표 아래쭉 어
+    lsy = int(posepoint[2].get('y'))
+    rsx = int(posepoint[5].get('x'))#오른어깨
+    rsy = int(posepoint[5].get('y'))
+    lhx = int(posepoint[4].get('x'))#왼손목
+    lhy = int(posepoint[4].get('y'))
+    rhx = int(posepoint[7].get('x'))#오른손목
+    rhy = int(posepoint[7].get('y'))
+    result = cv2.line(result,(lsx,lsy),(rsx,rsy),red_color,2)
+    result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color,2)
+    result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
+    
 
 posepoints = get_keypoints("front_wo")
-pose_img = cut_vid(frame,pose_idx)
+pose_img = cut_vid(frame,pose_idx) #pose_img 는 리스트 입니다..
+adress_idx = pose_idx[0]
+draw_adress(pose_img[0],posepoints[adress_idx])
 cut_img(posepoints,pose_img,pose_idx,0)
-
-
-# In[ ]:
-
-
-
-

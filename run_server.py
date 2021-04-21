@@ -3,6 +3,9 @@ import cv2
 import json
 import math
 from flask import Flask, render_template, request, redirect, url_for
+import mysql.connector
+import sys
+import flask
 
 app = Flask(__name__)
 
@@ -12,7 +15,7 @@ def main():
     filename = 'front_wo'
     vidname = filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-    #path = os.system('./build/examples/openpose/openpose.bin --video정 examples/media/'+vidname+' --write_json output/ --display 0 --render_pose 0')
+    #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ../openpose/examples/media/'+vidname+' --write_json output/ --display 0 --render_pose 0')
     size,frame=get_frame(vidname)
     posepoints = get_keypoints(filename,size)
 
@@ -31,7 +34,7 @@ def main():
 ###############3
 
 def get_frame(vidname): #모든 프레임을 다 저장. 따라서 경량화 하여 오버헤드 줄일 수 있다.
-    pathname = './examples/media/'+vidname
+    pathname = vidname
     vidcap = cv2.VideoCapture(pathname)
     frame = []
 
@@ -48,7 +51,7 @@ def get_keypoints(filename,size):
     for i in range(size): # 0~num i를 1씩 증가시키면서 반복
         num = format(i,"012")# 0000000000000 문자열로 저장(12자리 0)
         jFileName = filename +"_"+num +"_keypoints.json"
-        with open('output/'+jFileName, 'r') as f:
+        with open('json/'+jFileName, 'r') as f:
             json_data = json.load(f)  # json파일 불러오기댐
             # 첫번째 사람만 본다. 2명일때 예외처리 나중에해야
             keypoint = {'x': 0, 'y': 0, 'c': 0}  # 마지막 c는 신뢰도..0.3이하면 신뢰하지 않는다
@@ -129,7 +132,57 @@ def draw_adress(img,posepoint) : #어드래스 이미지 골격을 그리는 함
     result = cv2.line(result,(lsx,lsy),(rsx,rsy),red_color,2)
     result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color,2)
     result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
+@app.route('/db', methods = ['GET', 'POST'])
+def chat():
+    msg_received = flask.request.get_json()
+    msg_subject = msg_received["subject"]
 
+    if msg_subject == "register":
+        return register(msg_received)
+    elif msg_subject == "login":
+        return login(msg_received)
+    else:
+        return "Invalid request."
+
+def register(msg_received):
+    id = msg_received["userid"]
+    password = msg_received["userpwd"]
+    username = msg_received["username"]
+    email = msg_received["useremail"]
+
+    select_query = "SELECT * FROM users where name = " + "'" + id + "'"
+    db_cursor.execute(select_query)
+    records = db_cursor.fetchall()
+    if len(records) != 0:
+        return "Another user used the username. Please chose another username."
+
+    insert_query = "INSERT INTO users (id, psw, name, email) VALUES (%s, MD5(%s), %s, %s)"
+    insert_values = (id, password, username, email)
+    try:
+        db_cursor.execute(insert_query, insert_values)
+        chat_db.commit()
+        return "success"
+    except Exception as e:
+        print("Error while inserting the new record :", repr(e))
+        return "failure"
+
+def login(msg_received):
+    username = msg_received["userid"]
+    password = msg_received["userpwd"]
+    select_query = "SELECT name FROM users where id = " + "'" + username + "' and psw = " + "MD5('" + password + "')"
+    db_cursor.execute(select_query)
+    records = db_cursor.fetchall()
+
+    if len(records) == 0:
+        return "failure"
+    else:
+        return "success"
+try:
+    chat_db = mysql.connector.connect(host="golfdb.chx469ppubzv.ap-northeast-2.rds.amazonaws.com",
+                                      user="jaewon", passwd="jl42474247", database="Golfuser")
+except:
+    sys.exit("Error connecting to the database. Please check your inputs.")
+db_cursor = chat_db.cursor()
 #main()
 if __name__ == "__main__":
-	app.run()
+	app.run(host="0.0.0.0", port=5000, debug=True, threaded=True)

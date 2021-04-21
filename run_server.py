@@ -9,13 +9,12 @@ import flask
 
 app = Flask(__name__)
 
-@app.route('/', methods=['GET', 'POST']) #새로 고침 이라는 입력이 들어오면....
-def main():
+def main(URL):
     #date = os.system('date')
     filename = 'front_wo'
     vidname = filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-    #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ../openpose/examples/media/'+vidname+' --write_json output/ --display 0 --render_pose 0')
+    #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' +"'" +  URL + "'" + ' --write_json output/ --display 0 --render_pose 0')
     size,frame=get_frame(vidname)
     posepoints = get_keypoints(filename,size)
 
@@ -51,7 +50,7 @@ def get_keypoints(filename,size):
     for i in range(size): # 0~num i를 1씩 증가시키면서 반복
         num = format(i,"012")# 0000000000000 문자열로 저장(12자리 0)
         jFileName = filename +"_"+num +"_keypoints.json"
-        with open('json/'+jFileName, 'r') as f:
+        with open('output/'+jFileName, 'r') as f:
             json_data = json.load(f)  # json파일 불러오기댐
             # 첫번째 사람만 본다. 2명일때 예외처리 나중에해야
             keypoint = {'x': 0, 'y': 0, 'c': 0}  # 마지막 c는 신뢰도..0.3이하면 신뢰하지 않는다
@@ -107,7 +106,7 @@ def cut_img(posepoints,pose_img,pose_index,size):
         #cv2.imshow("new"+num, roi)
         #필요시 image저장코드 :
         #fname = "{}.jpg".format("{0:05d}")
-        #cv2.imwrite('result'+num+fname, image) # save frame as JPEG file
+        #cv2.imwrite('result'+num+fname, roi) # save frame as JPEG file
     #cv2.waitKey()
     #cv2.destroyAllWindows()
 
@@ -141,16 +140,37 @@ def chat():
         return register(msg_received)
     elif msg_subject == "login":
         return login(msg_received)
+    elif msg_subject == "video":
+        return video(msg_received)
     else:
         return "Invalid request."
+def video(msg_received):
+    userid = msg_received["userid"]
+    videoURL = msg_received["URL"]
 
+    select_query = "SELECT * FROM video where URL = " + "'" + videoURL + "'"
+    db_cursor.execute(select_query)
+    records = db_cursor.fetchall()
+    if len(records) != 0:
+        return "Another user used the username. Please chose another username."
+
+    insert_query = "INSERT INTO video (id, URL) VALUES (%s,%s)"
+    insert_values = (userid, videoURL)
+    try:
+        db_cursor.execute(insert_query, insert_values)
+        chat_db.commit()
+        main(videoURL)
+        return "success"
+    except Exception as e:
+        print("Error while inserting the new record :", repr(e))
+        return "failure"
 def register(msg_received):
     id = msg_received["userid"]
     password = msg_received["userpwd"]
     username = msg_received["username"]
     email = msg_received["useremail"]
 
-    select_query = "SELECT * FROM users where name = " + "'" + id + "'"
+    select_query = "SELECT * FROM users where id = " + "'" + id + "'"
     db_cursor.execute(select_query)
     records = db_cursor.fetchall()
     if len(records) != 0:

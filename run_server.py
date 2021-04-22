@@ -1,15 +1,15 @@
-import os
 import cv2
+import os
 import json
 import math
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import sys
 import flask
-
+import boto3
+from PIL import Image
 app = Flask(__name__)
-
-def main(URL):
+def main(URL,userid):
     #date = os.system('date')
     filename = 'front_wo'
     vidname = filename+'.mp4'
@@ -17,13 +17,13 @@ def main(URL):
     #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' +"'" +  URL + "'" + ' --write_json output/ --display 0 --render_pose 0')
     size,frame=get_frame(vidname)
     posepoints = get_keypoints(filename,size)
-
     pose_idx = [20, 37, 53, 68, 69, 75, 90]  # 어,테,탑,다운,임펙,팔스,피니쉬 가 저장된 걸 반환받았다고 가
 
     pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
     adress_idx = pose_idx[0]
     draw_adress(pose_img[0], posepoints[adress_idx])
-    cut_img(posepoints, pose_img, pose_idx, 0)
+    image = cut_img(posepoints, pose_img, pose_idx, 0)
+    makeImageFile(image,URL,userid)
     #poseimg 라는 리스트 안에 최종으로 사용자에게 전송할 mat 형식의 그림 date가 있습니다. 이것을 전송하면
     ###아래는 서버 동작하는지 테스트 코드####
     point = posepoints[0][0].get('x')
@@ -50,7 +50,7 @@ def get_keypoints(filename,size):
     for i in range(size): # 0~num i를 1씩 증가시키면서 반복
         num = format(i,"012")# 0000000000000 문자열로 저장(12자리 0)
         jFileName = filename +"_"+num +"_keypoints.json"
-        with open('output/'+jFileName, 'r') as f:
+        with open('json/'+jFileName, 'r') as f:
             json_data = json.load(f)  # json파일 불러오기댐
             # 첫번째 사람만 본다. 2명일때 예외처리 나중에해야
             keypoint = {'x': 0, 'y': 0, 'c': 0}  # 마지막 c는 신뢰도..0.3이하면 신뢰하지 않는다
@@ -103,13 +103,14 @@ def cut_img(posepoints,pose_img,pose_index,size):
         roi = img[int(y-s):int(y+s), int(x-s):int(x+s)].copy()
                   #[y시작:y끝             ,x시작:x끝]
         pose_img[idx] = roi
+
         #cv2.imshow("new"+num, roi)
         #필요시 image저장코드 :
         #fname = "{}.jpg".format("{0:05d}")
-        #cv2.imwrite('result'+num+fname, roi) # save frame as JPEG file
+        #cv2.imwrite('1234' + '/result'+num+fname, pose_img[idx]) # save frame as JPEG file
     #cv2.waitKey()
     #cv2.destroyAllWindows()
-
+    return pose_img
 def get_center(point1,point2) :
     x1 = point1.get('x')
     y1 = point1.get('y')
@@ -131,6 +132,24 @@ def draw_adress(img,posepoint) : #어드래스 이미지 골격을 그리는 함
     result = cv2.line(result,(lsx,lsy),(rsx,rsy),red_color,2)
     result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color,2)
     result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
+def uploadFile(filename, files,userid):
+    s3 = boto3.client(
+        's3',  # 사용할 서비스 이름, ec2이면 'ec2', s3이면 's3', dynamodb이면 'dynamodb'
+        aws_access_key_id="AKIAV7WUXMYC2J5GO6ND",  # 액세스 ID
+        aws_secret_access_key="oGPrWSHFA2s9q0/Ow3kPs2vi5vOW3lEBj0Qb6YJj")  # 비밀 엑세스 키
+    s3.upload_file(files, 'golfapplication', userid + '/image/' +filename)
+def createFolder(directory):
+    try:
+        if not os.path.exists(directory):
+                os.makedirs(directory)
+    except OSError:
+         print('Error: Creating directory. ' + directory)
+def makeImageFile(image,URL,userid):
+    for idx in range(0, 6):
+        num = str(idx)
+        Fname =  URL[61 :]
+        cv2.imwrite(userid + '/' + Fname + '-' + num + '.jpg', image[idx])  # save frame as JPEG file
+        uploadFile(Fname + '-' + num + '.jpg',userid + '/' + Fname + '-' + num + '.jpg',userid)
 @app.route('/db', methods = ['GET', 'POST'])
 def chat():
     msg_received = flask.request.get_json()
@@ -159,7 +178,8 @@ def video(msg_received):
     try:
         db_cursor.execute(insert_query, insert_values)
         chat_db.commit()
-        main(videoURL)
+        createFolder('./' + userid)
+        main(videoURL,userid)
         return "success"
     except Exception as e:
         print("Error while inserting the new record :", repr(e))

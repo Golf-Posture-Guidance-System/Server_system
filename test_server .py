@@ -6,6 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import sys
 import flask
+from PIL import ImageFont, ImageDraw, Image
 
 INF = 10000
 
@@ -93,24 +94,6 @@ def get_center(point1,point2) :
     x2 = point2.get('x')
     y1 = point1.get('y')
 
-def draw_adress(img,posepoint) : #어드래스 이미지 골격을 그리는 함수
-    result = img #얕은 복사 따라서 img배열 자체에 그림이 그려진다.
-    red_color = (0,0,255)
-
-    lsx = int(posepoint[2].get('x')) #왼어깨x좌표 아래쭉 어
-    lsy = int(posepoint[2].get('y'))
-    rsx = int(posepoint[5].get('x'))#오른어깨
-    rsy = int(posepoint[5].get('y'))
-    lhx = int(posepoint[4].get('x'))#왼손목
-    lhy = int(posepoint[4].get('y'))
-    rhx = int(posepoint[7].get('x'))#오른손목
-    rhy = int(posepoint[7].get('y'))
-    result = cv2.line(result,(lsx,lsy),(rsx,rsy),red_color,2)
-    result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color,2)
-    result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
-
-#-______________________
-
 def get_slope(x1,y1,x2,y2): #두 점의 좌표를 가지고 기울기를 구하는 함수 (이번 코드에는 사용하지 않았음 ㅎㅎ;)
     if x1 != x2: #분모가 0이되는 상황 방지
         radian = math.arctan((y2-y1)/(x2-x1))
@@ -132,6 +115,127 @@ def get_angle(joint1,joint2,joint3): #두 몸체의 기울기를 가지고 관�
     #print(radian)
     andgle = radian * (180 / math.pi)
     return abs(andgle) #각도를절댓값으로 변환 ^^
+
+
+def draw_adress(img, posepoint) : #어드래스 이미지 골격을 그리는 함수
+    result = img #얕은 복사 따라서 img배열 자체에 그림이 그려진다.
+    red_color = (0,0,255)
+    black_color = (0,0,0)
+
+
+    lsx = int(posepoint[2].get('x')) #왼어깨x좌표 아래쭉 어
+    lsy = int(posepoint[2].get('y'))
+    rsx = int(posepoint[5].get('x'))#오른어깨
+    rsy = int(posepoint[5].get('y'))
+    lhx = int(posepoint[4].get('x'))#왼손목
+    lhy = int(posepoint[4].get('y'))
+    rhx = int(posepoint[7].get('x'))#오른손목
+    rhy = int(posepoint[7].get('y'))
+
+    left_angle = get_angle(posepoint[5],posepoint[2],posepoint[4])
+    right_angle = get_angle(posepoint[2],posepoint[5],posepoint[7])
+
+    result = cv2.line(result,(lsx,lsy),(rsx,rsy),red_color,2)
+    result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color,2)
+    result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
+    result = cv2.ellipse(result, (lsx,lsy), (18,18), 0,0,left_angle, red_color,2)
+    result = cv2.ellipse(result, (rsx,rsy), (18,18),0,180-right_angle,180,red_color,2)
+    result = cv2.putText(result, str(int(left_angle))+ "도", (lsx - 50, lsy ), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
+
+
+
+def draw_takeAway(img, posepoint):
+    result = img
+    red_color = (0,0,255)
+
+    lsx = int(posepoint[2].get('x'))  # 왼어깨x좌표 아래쭉 어
+    lsy = int(posepoint[2].get('y'))
+    rsx = int(posepoint[5].get('x'))  # 오른어깨
+    rsy = int(posepoint[5].get('y'))
+    lhx = int(posepoint[4].get('x'))  # 왼손목
+    lhy = int(posepoint[4].get('y'))
+    rhx = int(posepoint[7].get('x'))  # 오른손목
+    rhy = int(posepoint[7].get('y'))
+
+    left_angle = get_angle(posepoint[5], posepoint[2], posepoint[4])
+    right_angle = get_angle(posepoint[2], posepoint[5], posepoint[7])
+
+    #어깨-손목 선
+    result = cv2.line(result, (lsx, lsy), (rsx, rsy), red_color, 2)
+    result = cv2.line(result, (lsx, lsy), (lhx, lhy), red_color, 2)
+    result = cv2.line(result, (rsx, rsy), (rhx, rhy), red_color, 2)
+    result = cv2.ellipse(result, (lsx, lsy), (15, 15), 0, 0, left_angle, red_color, 2) #왼쪽 각도 표시
+    result = cv2.ellipse(result, (rsx, rsy), (18, 18), 0, -(180-right_angle), 180, red_color, 2) #오른쪽 각도 표시
+
+
+def draw_top(img, posepoint):
+    result = img
+    red_color = (0, 0, 255)
+
+    rhx = int(posepoint[12].get('x')) #오른쪽 골반 x 좌표
+    rhy = int(posepoint[12].get('y'))
+    rkx = int(posepoint[13].get('x')) #오른쪽 무릎
+    rky = int(posepoint[13].get('y'))
+    rax = int(posepoint[14].get('x')) #오른쪽 발목
+    ray = int(posepoint[14].get('y'))
+
+    right_leg_angle = get_angle(posepoint[12],posepoint[13],posepoint[14])
+    start_angle = (math.atan2(rhy-rky, rhx-rkx)) * (180/math.pi)
+    end_angle = (math.atan2(ray-rky,rax-rkx) * (180/math.pi))
+    print(right_leg_angle)
+    print(start_angle)
+    print(end_angle)
+
+    result = cv2.line(result, (rhx,rhy), (rkx,rky), red_color, 2)
+    result = cv2.line(result, (rkx, rky), (rax,ray), red_color,2)
+    result = cv2.ellipse(result, (rkx, rky), (18,18), 0 , start_angle, end_angle, red_color, 2)
+
+
+def draw_down(img, posepoint):
+    result = img
+    red_color=(0,0,255)
+
+    rhx = int(posepoint[12].get('x'))  # 오른쪽 골반 x 좌표
+    rhy = int(posepoint[12].get('y'))
+    rkx = int(posepoint[13].get('x'))  # 오른쪽 무릎
+    rky = int(posepoint[13].get('y'))
+    rax = int(posepoint[14].get('x'))  # 오른쪽 발목
+    ray = int(posepoint[14].get('y'))
+
+    right_leg_angle = get_angle(posepoint[12], posepoint[13], posepoint[14])
+    start_angle = (math.atan2(rhy - rky, rhx - rkx)) * (180 / math.pi)
+    end_angle = (math.atan2(ray - rky, rax - rkx) * (180 / math.pi))
+    print(right_leg_angle)
+    print(start_angle)
+    print(end_angle)
+
+    result = cv2.line(result, (rhx, rhy), (rkx, rky), red_color, 2)
+    result = cv2.line(result, (rkx, rky), (rax, ray), red_color, 2)
+    result = cv2.ellipse(result, (rkx, rky), (18, 18), 0, start_angle, end_angle, red_color, 2)
+
+def draw_impact(img, posepoint):
+    result = img
+    red_color = (0,0,255)
+
+    lhx = int(posepoint[9].get('x'))  # 왼쪽 골반 x 좌표
+    lhy = int(posepoint[9].get('y'))
+    lkx = int(posepoint[10].get('x'))  # 왼쪽 무릎
+    lky = int(posepoint[10].get('y'))
+    lax = int(posepoint[11].get('x'))  # 왼쪽 발목
+    lay = int(posepoint[11].get('y'))
+
+    left_leg_angle = get_angle(posepoint[9], posepoint[10], posepoint[11])
+    start_angle = (math.atan2(lay - lky, lax - lkx)) * (180/math.pi)
+    end_angle = (math.atan2(lhy - lky, lhx - lkx)) * (180/math.pi)
+
+
+    print(left_leg_angle)
+    print(start_angle)
+    print(end_angle)
+
+    result = cv2.line(result, (lhx, lhy), (lkx, lky), red_color, 2)
+    result = cv2.line(result, (lkx, lky), (lax, lay), red_color, 2)
+    result = cv2.ellipse(result, (lkx, lky), (18, 18), 0, start_angle, 360 + end_angle, red_color, 2)
 
 def get_y_wrist(posepoints, lr):
     # 손목 위치의 함수를 반환,프레임배열과, 왼오 옵
@@ -282,7 +386,7 @@ def pose_classifier(posepoints,size):
 
 
 
-filename = 'gpps'
+filename = 'golf'
 vidname = filename+'.mp4'
 pathname='examples/media/'+vidname
 #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
@@ -293,6 +397,17 @@ posepoints = get_keypoints(filename,size)
 pose_idx = pose_classifier(posepoints,size)  # 어,테,탑,다운,임펙,팔스,피니쉬 가 저장된 걸 반환받았다고 가정
 
 pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
+#코드 정리 안함..
 adress_idx = pose_idx[0]
+takeAway_idx = pose_idx[1]
+top_idx = pose_idx[2]
+down_idx = pose_idx[3]
+impact_idx = pose_idx[4]
+
 draw_adress(pose_img[0], posepoints[adress_idx])
+draw_takeAway(pose_img[1], posepoints[takeAway_idx])
+draw_top(pose_img[2], posepoints[top_idx])
+draw_down(pose_img[3], posepoints[down_idx])
+draw_impact(pose_img[4], posepoints[impact_idx])
+
 cut_img(posepoints, pose_img, pose_idx, 0)

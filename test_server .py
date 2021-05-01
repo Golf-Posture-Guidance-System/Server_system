@@ -2,6 +2,7 @@ import os
 import cv2
 import json
 import math
+import imutils
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import sys
@@ -20,7 +21,10 @@ def get_frame(vidname): #모든 프레임을 다 저장. 따라서 경량화 하
         success, image = vidcap.read()
         if not success:
             break
+        image = imutils.resize(image, width=500)
         frame.append(image.copy())
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
     size = len(frame)
     return size,frame
 

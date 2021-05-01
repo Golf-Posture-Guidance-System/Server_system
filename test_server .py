@@ -2,18 +2,18 @@ import os
 import cv2
 import json
 import math
-import imutils
 from flask import Flask, render_template, request, redirect, url_for
 import mysql.connector
 import sys
 import flask
+import imutils
 from matplotlib import pyplot as plt
 from PIL import ImageFont, ImageDraw, Image
 
 INF = 10000
 
 def get_frame(vidname): #모든 프레임을 다 저장. 따라서 경량화 하여 오버헤드 줄일 수 있다.
-    pathname = 'examples/media/'+vidname
+    pathname = 'examples/media/' + vidname
     vidcap = cv2.VideoCapture(pathname)
     frame = []
 
@@ -21,12 +21,12 @@ def get_frame(vidname): #모든 프레임을 다 저장. 따라서 경량화 하
         success, image = vidcap.read()
         if not success:
             break
-        image = imutils.resize(image, width=500)
         frame.append(image.copy())
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     size = len(frame)
-    return size,frame
+    return size, frame
+
 
 def get_keypoints(filename,size):
     posepoints = []
@@ -86,6 +86,7 @@ def cut_img(posepoints,pose_img,pose_index,size):
         #roi = img[int(y-s):int(y+s), int(x-s):int(x+s)].copy()
                   #[y시작:y끝             ,x시작:x끝]
         #pose_img[idx] = roi
+        img = imutils.resize(img, width=500)
         cv2.imshow("new"+num, img)
         #필요시 image저장코드 :
         #fname = "{}.jpg".format("{0:05d}")

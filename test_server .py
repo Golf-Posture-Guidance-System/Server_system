@@ -619,5 +619,5 @@ pose_idx = pose_classifier(posepoints,size)  #포즈 분류하기
 
 pose_img = cut_vid(frame, pose_idx)  #mat이미지 반환받기
 draw_image(pose_img,pose_idx)   #골격 그리기
-#cut_img(posepoints, pose_img, pose_idx, 0) #서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
+cut_img(posepoints, pose_img, pose_idx, 0) #서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
 assess_pose(posepoints,pose_idx) #포즈 평가하기

@@ -2,10 +2,7 @@ import os
 import cv2
 import json
 import math
-from flask import Flask, render_template, request, redirect, url_for
-import mysql.connector
 import sys
-import flask
 import imutils
 from matplotlib import pyplot as plt
 from PIL import ImageFont, ImageDraw, Image
@@ -26,7 +23,6 @@ def get_frame(vidname): #모든 프레임을 다 저장. 따라서 경량화 하
             break
     size = len(frame)
     return size, frame
-
 
 def get_keypoints(filename,size):
     posepoints = []
@@ -98,9 +94,9 @@ def get_center(point1,point2) :
     x1 = point1.get('x')
     y1 = point1.get('y')
     x2 = point2.get('x')
-    y2 = point1.get('y')
+    y2 = point2.get('y')
 
-    center_point = {'x' : (x2+x1)/2,'y' :  (y2+y1)/2 }
+    center_point = {'x': (x2+x1)/2,'y':  (y2+y1)/2 }
     return center_point
 
 def draw_angle(p1,p2,p3,img):
@@ -126,18 +122,14 @@ def draw_angle(p1,p2,p3,img):
         end_angle = get_slope_R1(p2, p1)
         circle_angle = -180
 
-
-
-
-
     cv2.ellipse(img, (px2, py2), (18, 18), circle_angle, start_angle, end_angle, red_color, 2)
 
-def draw_line(p1,p2,img,color) :
+def draw_line (p1,p2,img,color) :
     sx = int(p1.get('x'))
     sy = int(p1.get('y'))
     fx = int(p2.get('x'))
     fy = int(p2.get('y'))
-    if sx ==0 or sy == 0 or  fx ==0 or fy ==0 :
+    if sx == 0 or sy == 0 or  fx ==0 or fy ==0 :
         return
 
     cv2.line(img, (sx, sy), (fx, fy), color, 2)
@@ -186,7 +178,6 @@ def draw_takeAway(img, posepoint):
     draw_angle(posepoint[2], posepoint[5], posepoint[7], img)
     cv2.putText(img, str(int(left_angle)) + "도", (lsx - 50, lsy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
 
-
 def draw_top(img, posepoint):
     result = img
     red_color = (0, 0, 255)
@@ -207,7 +198,7 @@ def draw_top(img, posepoint):
     result = cv2.line(result, (rkx, rky), (rax,ray), red_color,2)
     result = cv2.ellipse(result, (rkx, rky), (18,18), 0 , start_angle, end_angle, red_color, 2)
 
-def draw_down(img, posepoint):
+def draw_down (img, posepoint):
     result = img
     red_color=(0,0,255)
     orange_color = (255, 165, 0)
@@ -231,7 +222,7 @@ def draw_down(img, posepoint):
     result = cv2.line(result, (rkx, rky), (rax, ray), red_color, 2)
     result = cv2.ellipse(result, (rkx, rky), (18, 18), 0, start_angle, end_angle, red_color, 2)
 
-def draw_impact(img, posepoint):
+def draw_impact (img, posepoint):
     result = img
     red_color = (0,0,255)
     orange_color = (255, 165, 0)
@@ -273,7 +264,6 @@ def draw_follow_through(img, posepoint):
     draw_angle(posepoint[5],posepoint[6],posepoint[7],result)
     draw_angle(posepoint[1], posepoint[5], posepoint[6], result)
 
-
 def draw_finish(img, posepoint):
     result = img
     red_color = (0, 0, 255)
@@ -293,9 +283,6 @@ def draw_finish(img, posepoint):
     draw_point_line(ground_point, top_point, img)  # 지평면
     #draw_angle(posepoint[1], posepoint[8], top_point, result)
 
-
-
-
 def draw_image(pose_img, pose_idx) :
     adress_idx = pose_idx[0]
     takeAway_idx = pose_idx[1]
@@ -313,7 +300,6 @@ def draw_image(pose_img, pose_idx) :
     draw_follow_through(pose_img[5],posepoints[follow_through])
     draw_finish(pose_img[6],posepoints[finish])
 
-
 #-______________________
 def slope (p1, p2) :
     if(p1.get('x') == p2.get('x')):
@@ -321,15 +307,13 @@ def slope (p1, p2) :
     else :
         return (p2.get('y') - p1.get('y'))/(p2.get('x')-p1.get('y'))
 
-
-
-def get_slope_R(x1,y1,x2,y2): #두 점의 좌표를 가지고 기울기를 구하는 함수 (이번 코드에는 사용하지 않았음 ㅎㅎ;)
-    if x1 != x2: #분모가 0이되는 상황 방지
+def get_slope_R (x1,y1,x2,y2): #두 점의 좌표를 가지고 기울기를 구하는 함수 (이번 코드에는 사용하지 않았음 ㅎㅎ;)
+    if x1 != x2 : #분모가 0이되는 상황 방지
         radian = math.atan2((y2-y1),(x2-x1))
         return radian
     else : return 0
 
-def get_slope_R1(p1,p2) :
+def get_slope_R1 (p1,p2) :
     p1x = p1.get('x')
     p1y = p1.get('y')
     p2x = p2.get('x')
@@ -338,7 +322,7 @@ def get_slope_R1(p1,p2) :
     andgle = radian * (180 / math.pi)
     return andgle
 
-def get_slope(p1,p2) :
+def get_slope (p1,p2) :
     p1x = p1.get('x')
     p1y = p1.get('y')
     p2x = p2.get('x')
@@ -347,13 +331,12 @@ def get_slope(p1,p2) :
     andgle = radian * (180 / math.pi)
     return andgle
 
-
-def get_distan(point1,point2): #두 점 사이의 거리를 구하는 공식
+def get_distan (point1,point2): #두 점 사이의 거리를 구하는 공식
     a = point1.get('x') - point2.get('x')
     b = point2.get('y') - point2.get('y')
     return math.sqrt((a*a) + (b*b))
 
-def get_angle(joint1,joint2,joint3): #두 몸체의 기울기를 가지고 관절의 각도를구하는 함수      locate ->  j1 ------ j2 ------- j3
+def get_angle (joint1,joint2,joint3): #두 몸체의 기울기를 가지고 관절의 각도를구하는 함수      locate ->  j1 ------ j2 ------- j3
     if(joint1.get('x')-joint2.get('x')) == 0:
         return 0
     if(joint3.get('x')-joint2.get('x')) == 0:
@@ -365,7 +348,7 @@ def get_angle(joint1,joint2,joint3): #두 몸체의 기울기를 가지고 관�
     angle = radian * (180 / math.pi)
     return angle
 
-def get_y_wrist(posepoints, lr):
+def get_y_wrist (posepoints, lr):
     # 손목 위치의 함수를 반환,프레임배열과, 왼오 옵
     y_point_arr = []
     if (lr == "left"):  # 왼
@@ -389,7 +372,7 @@ def get_y_wrist(posepoints, lr):
                 y_point_arr.append(rwrist)
     return y_point_arr
 
-def get_x_wrist(posepoints, lr):
+def get_x_wrist (posepoints, lr):
     # 손목 위치의 함수를 반환,프레임배열과, 왼오 옵
     y_point_arr = []
     if (lr == "left"):  # 왼
@@ -524,17 +507,100 @@ def pose_classifier(posepoints,size):
 
     return idx
 
+#-----------
+def assess_pose(posepoints,pose_idx):
+    hscore = check_headup(posepoints,pose_idx)
+    bscore = check_body_sway(posepoints,pose_idx)
+    cscore = check_chickin_wing(posepoints,pose_idx)
+
+    score_list = [hscore,bscore,cscore] #가장 심각한 실수가 어떤것지 찾기위해
+    worst = score_list.index(min(score_list)) #사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
+
+    if worst == 0 : #head_up이 가장 심각한 실수
+        #서버에 문제가 있는 헤드업 사진을 전송하기
+        #의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
+        a=0
+    elif worst == 1 : #바디 스웨이가 가장 심각한 실수
+        # 서버에 문제가 있는 헤드업 사진을 전송하기
+        # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
+        a=1
+    elif worst == 2 : #치킨윙이 심각한 경우
+        # 서버에 문제가 있는 헤드업 사진을 전송하기
+        # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
+        a=2
+
+    total_score = 100
+    for i in score_list:
+        total_score = total_score+i
+        #100점에서 발생한 실수만큼 뺀다
+    print(total_score)
+    return total_score
 
 
-filename = 'front_wo'
+def check_headup(posepoints,pose_idx):
+    adress_idx = pose_idx[0]
+    takeAway_idx = pose_idx[1]
+    top_idx = pose_idx[2]
+    down_idx = pose_idx[3]
+    impact_idx = pose_idx[4]
+    follow_through = pose_idx [5]
+    finish = pose_idx[6]
+
+    return 0
+
+def check_body_sway (posepoints,pose_idx) :
+    dress_idx = pose_idx[0]
+    takeAway_idx = pose_idx[1]
+    top_idx = pose_idx[2]
+    down_idx = pose_idx[3]
+    impact_idx = pose_idx[4]
+    follow_through_idx = pose_idx[5]
+    finish_idx = pose_idx[6]
+
+    score = 0 #100점에서 차감할 점수의 초기값
+
+    top_point = posepoints[top_idx]
+    finish_point = posepoints[finish_idx]
+
+    spine_angle_top = get_angle(top_point[1],top_point[8],top_point[12])
+    spine_angle_finish = get_angle(finish_point[1], finish_point[8],finish_point[12])
+    dif_angle = abs(spine_angle_finish) - abs(spine_angle_top)
+
+    dif_angle = abs(dif_angle) #차이를 절대값으로 점수 계산
+
+    if (dif_angle > 3.5):
+        score = dif_angle * 10
+    elif (dif_angle <= 3.5):
+        score = dif_angle
+    elif (dif_angle <= 1.5):
+        score = 0
+    score = int(score)
+    #print(score)
+
+
+    return -score
+
+def check_chickin_wing(posepoints,pose_idx):
+    dress_idx = pose_idx[0]
+    takeAway_idx = pose_idx[1]
+    top_idx = pose_idx[2]
+    down_idx = pose_idx[3]
+    impact_idx = pose_idx[4]
+    follow_through = pose_idx[5]
+    finish = pose_idx[6]
+
+    return -30
+
+filename = 'badpose'
 vidname = filename+'.mp4'
 pathname='examples/media/'+vidname
 #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
 #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' + pathname +  ' --write_json output/ --display 0 --render_pose 0')
 size,frame=get_frame(vidname)
 posepoints = get_keypoints(filename,size)
-pose_idx = pose_classifier(posepoints,size)  # 어,테,탑,다운,임펙,팔스,피니쉬 가 저장된 걸 반환받았다고 가정
+pose_idx = pose_classifier(posepoints,size)  #포즈 분류하기
 
-pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
-draw_image(pose_img,pose_idx)   
-cut_img(posepoints, pose_img, pose_idx, 0)
+pose_img = cut_vid(frame, pose_idx)  #mat이미지 반환받기
+draw_image(pose_img,pose_idx)   #골격 그리기
+#cut_img(posepoints, pose_img, pose_idx, 0) #서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
+assess_pose(posepoints,pose_idx) #포즈 평가하기

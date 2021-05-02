@@ -7,10 +7,13 @@ import mysql.connector
 import sys
 import flask
 import boto3
+import time
 from PIL import Image
 app = Flask(__name__)
 def main(URL,userid):
     #date = os.system('date')
+    time.sleep(0.7)
+    downloadFile(URL)
     filename = 'front_wo'
     vidname = filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
@@ -156,9 +159,10 @@ def createFolder(directory):
 def makeImageFile(image,URL,userid):
     for idx in range(0, 6):
         num = str(idx)
-        Fname =  URL[61 :]
-        cv2.imwrite(userid + '/' + Fname + '-' + num + '.jpg', image[idx])  # save frame as JPEG file
-        uploadFile(Fname + '-' + num + '.jpg',userid + '/' + Fname + '-' + num + '.jpg',userid)
+        Fname =  URL[56:]
+        Textnum = Fname.find('/')
+        cv2.imwrite(Fname + '-' + num + '.jpg', image[idx])  # save frame as JPEG file
+        uploadFile(Fname[Textnum + 1 :]+ '-' + num + '.jpg',Fname + '-' + num + '.jpg',userid)
 @app.route('/db', methods = ['GET', 'POST'])
 def chat():
     msg_received = flask.request.get_json()
@@ -187,7 +191,6 @@ def video(msg_received):
     try:
         db_cursor.execute(insert_query, insert_values)
         chat_db.commit()
-        downloadFile(videoURL)
         createFolder('./' + userid)
         main(videoURL,userid)
         return "success"

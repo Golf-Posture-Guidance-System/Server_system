@@ -146,9 +146,19 @@ def draw_point_line(p1,p2,img) :
 def draw_adress(img, posepoint) : #어드래스 이미지 골격을 그리는 함수
     red_color = (0, 0, 255)
     black_color = (0, 0, 0)
+    blue_color = (255, 165, 0)
 
     lsx = int(posepoint[2].get('x')) #왼어깨x좌표 아래쭉 어
     lsy = int(posepoint[2].get('y'))
+
+    rsx = int(posepoint[5].get('x'))  #오른쪽 어깨
+    rsy = int(posepoint[5].get('y') + 50)
+    rsy2 = int(posepoint[5].get('y') - 50)
+    lsy = int(posepoint[2].get('y') + 50)
+    lsy2 = int(posepoint[2].get('y') - 50)
+
+
+
 
     left_angle = get_angle(posepoint[5],posepoint[2],posepoint[4])
     right_angle = get_angle(posepoint[2],posepoint[5],posepoint[7])
@@ -156,8 +166,11 @@ def draw_adress(img, posepoint) : #어드래스 이미지 골격을 그리는 �
     draw_line(posepoint[2], posepoint[5], img,red_color)
     draw_line(posepoint[5], posepoint[7], img,red_color)
     draw_line(posepoint[2], posepoint[4], img,red_color)
+    draw_line(posepoint[22],posepoint[19],img, blue_color)
     draw_angle(posepoint[1], posepoint[2], posepoint[4], img)
     draw_angle(posepoint[2], posepoint[5], posepoint[7], img)
+    cv2.line(img, (rsx,rsy), (rsx,rsy2), blue_color, 2) #발 너비와 어깨 너비 비교
+    cv2.line(img, (lsx,lsy), (lsx,lsy2), blue_color, 2)
     cv2.putText(img, str(int(left_angle)) + "도", (lsx - 50, lsy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
 
 
@@ -181,6 +194,7 @@ def draw_takeAway(img, posepoint):
 def draw_top(img, posepoint):
     result = img
     red_color = (0, 0, 255)
+    blue_color = (255, 165, 0)
 
     rhx = int(posepoint[12].get('x')) #오른쪽 골반 x 좌표
     rhy = int(posepoint[12].get('y'))
@@ -189,11 +203,14 @@ def draw_top(img, posepoint):
     rax = int(posepoint[14].get('x')) #오른쪽 발목
     ray = int(posepoint[14].get('y'))
 
+
+
     right_leg_angle = get_angle(posepoint[12],posepoint[13],posepoint[14])
     start_angle = (math.atan2(rhy-rky, rhx-rkx)) * (180/math.pi)
     end_angle = (math.atan2(ray-rky,rax-rkx) * (180/math.pi))
 
-
+    draw_line(posepoint[1],posepoint[8], result, blue_color)
+    draw_line(posepoint[19],posepoint[22], result, blue_color)
     result = cv2.line(result, (rhx,rhy), (rkx,rky), red_color, 2)
     result = cv2.line(result, (rkx, rky), (rax,ray), red_color,2)
     result = cv2.ellipse(result, (rkx, rky), (18,18), 0 , start_angle, end_angle, red_color, 2)
@@ -591,7 +608,7 @@ def check_chickin_wing(posepoints,pose_idx):
 
     return -30
 
-filename = 'badpose'
+filename = 'gpps'
 vidname = filename+'.mp4'
 pathname='examples/media/'+vidname
 #아래 주석풀면 gpu 과부하걸리니 최초 실행시만

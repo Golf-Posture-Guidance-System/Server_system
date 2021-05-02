@@ -14,7 +14,7 @@ def main(URL,userid):
     filename = 'front_wo'
     vidname = filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-    #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' +"'" +  URL + "'" + ' --write_json output/ --display 0 --render_pose 0')
+    #path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0')
     size,frame=get_frame(vidname)
     posepoints = get_keypoints(filename,size)
     pose_idx = [20, 37, 53, 68, 69, 75, 90]  # 어,테,탑,다운,임펙,팔스,피니쉬 가 저장된 걸 반환받았다고 가
@@ -138,6 +138,15 @@ def uploadFile(filename, files,userid):
         aws_access_key_id="AKIAV7WUXMYC2J5GO6ND",  # 액세스 ID
         aws_secret_access_key="oGPrWSHFA2s9q0/Ow3kPs2vi5vOW3lEBj0Qb6YJj")  # 비밀 엑세스 키
     s3.upload_file(files, 'golfapplication', userid + '/image/' +filename)
+def downloadFile(URL):
+    filename = '../openpose/examples/media/TestGolf.mp4'
+    bucket = 'golfapplication'
+    key = URL[56:]
+    s3 = boto3.client(
+        's3',  # 사용할 서비스 이름, ec2이면 'ec2', s3이면 's3', dynamodb이면 'dynamodb'
+        aws_access_key_id="AKIAV7WUXMYC2J5GO6ND",  # 액세스 ID
+        aws_secret_access_key="oGPrWSHFA2s9q0/Ow3kPs2vi5vOW3lEBj0Qb6YJj")  # 비밀 엑세스 키
+    s3.download_file(bucket, key, filename)
 def createFolder(directory):
     try:
         if not os.path.exists(directory):
@@ -178,6 +187,7 @@ def video(msg_received):
     try:
         db_cursor.execute(insert_query, insert_values)
         chat_db.commit()
+        downloadFile(videoURL)
         createFolder('./' + userid)
         main(videoURL,userid)
         return "success"

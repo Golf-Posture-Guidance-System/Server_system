@@ -370,17 +370,17 @@ def get_y_wrist (posepoints, lr):
     y_point_arr = []
     if (lr == "left"):  # 왼
         for i in range(len(posepoints)):
-            lwrist = posepoints[i][4].get('y')
+            lwrist = posepoints[i][7].get('y')
             if (lwrist == 0):  # 이상치에서 최소 값을 봐야하므로 inf로 대체
                 y_point_arr.append(INF)
-            elif (posepoints[i][4].get('c') < 0.2):
+            elif (posepoints[i][7].get('c') < 0.2):
                 y_point_arr.append(INF)
             else:
                 y_point_arr.append(lwrist)
 
     elif (lr == "right"):  # 오른손
         for i in range(len(posepoints)):
-            rwrist = posepoints[i][7].get('y')
+            rwrist = posepoints[i][4].get('y')
             if (rwrist == 0):  # 이상치에서 최소 값을 봐야하므로 inf로 대체
                 y_point_arr.append(INF)
             elif (posepoints[i][4].get('c') < 0.2):
@@ -394,17 +394,17 @@ def get_x_wrist (posepoints, lr):
     y_point_arr = []
     if (lr == "left"):  # 왼
         for i in range(len(posepoints)):
-            lwrist = posepoints[i][4].get('x')
+            lwrist = posepoints[i][7].get('x')
             if (lwrist == 0):  # 이상치에서 최소 값을 봐야하므로 inf로 대체
                 y_point_arr.append(INF)
-            elif (posepoints[i][4].get('c') < 0.2):
+            elif (posepoints[i][7].get('c') < 0.2):
                 y_point_arr.append(INF)
             else:
                 y_point_arr.append(lwrist)
 
     elif (lr == "right"):  # 오른손
         for i in range(len(posepoints)):
-            rwrist = posepoints[i][7].get('x')
+            rwrist = posepoints[i][4].get('x')
             if (rwrist == 0):  # 이상치에서 최소 값을 봐야하므로 inf로 대체
                 y_point_arr.append(INF)
             elif (posepoints[i][4].get('c') < 0.2):
@@ -425,8 +425,17 @@ def get_axis(left_wrist,right_wrist): # 손목의 변화량을 찾기위한 그�
             rx_values.append(i)
     return lx_values, ly_values, rx_values, ry_values
 # 순서대로 왼손좌표의 x축(프레임 변화), 왼손좌표의 y축(좌표변화),오른손x,y
+
+def get_error(arr) : #손목 위치의 허용 오차 구하기
+    mini =  min(arr)
+    maxi = max(arr)
+    dif = maxi - mini
+    error = (dif/5)
+    print(error)
+    return error
+
 def pose_classifier(posepoints,size):
-    idx = [0, 0, 0, 0, 0, 0, 0] #어,테이크어웨이,탑,다운,임펙,팔로스루,피니쉬
+    idx = [-1, -1, -1, -1, -1, -1, -1] #어,테이크어웨이,탑,다운,임펙,팔로스루,피니쉬
 
 # -------------- 손목의 x좌표 변화량 감지를 통해 스윙이 시작하는지(어드래스)감지)----
     left_wrist = get_x_wrist(posepoints, 'left')
@@ -442,52 +451,59 @@ def pose_classifier(posepoints,size):
             dx = rx_values[i + 1] - rx_values[i]
             dy = ry_values[i + 1] - ry_values[i]
             slope = dy / dx
-            if (slope <= -8 and idx[0] == 0):  # 좌측으로 움직이면 x좌표의 변화량은 감소
-                dx_left = lx_values[i + 1] - lx_values[i]
-                dy_left = ly_values[i + 1] - ly_values[i]
-                slope_left = dy_left / dx_left
+
+            cur_frmae_idx = rx_values[i]
+            if (slope <= -8 and idx[0] == -1):  # 좌측으로 움직이면 x좌표의 변화량은 감소
+                dy_left = ly_values[cur_frmae_idx + 1] - ly_values[cur_frmae_idx]
+                slope_left = dy_left / dx
                 if (slope_left <= -8):
                     idx[0] = rx_values[i-1]
+                    break
             slopes.append(slope)
 
 # -------------- 손목의 y좌표 변화량 감지를 통해 포즈 분류 ----
     #테이커웨이,스윙 탑,입펙트값을 먼저 구한다.
+
     left_wrist = get_y_wrist(posepoints, 'left')
     right_wrist = get_y_wrist(posepoints, 'right')
 
     lx_values, ly_values, rx_values, ry_values = get_axis(left_wrist, right_wrist)
+    #왼손의 인덱스,왼손의 x좌표값,오른손 인덱스,오른손 x좌표깂
 
-    l_downpoint = left_wrist[idx[0]]
-    r_downpoint = right_wrist[idx[0]]
-    for i in range(0, len(rx_values)):
-        if (len(rx_values) - 1 == i):  # 마지막 점의 경우 변화량을 계산할 필요가 없음
+    l_downpoint = left_wrist[idx[0]] #손목의 가장 낮은 높이 이것과 비슷해야 임팩트(공을칠떄 손목이 맨아래에위치)
+    r_downpoint = right_wrist[idx[0]] #손목의 가장 낮은 높이 이것과 비슷해야 임팩트(공을칠떄 손목이 맨아래에위치)
+
+    r_error = get_error(ry_values)
+    size = len(rx_values)
+    last_frame = rx_values[size - 1]
+    for i in range(0, size):
+        cur_frmae_idx = rx_values[i]
+        next_frame_idx = rx_values[i + 1]
+
+        if (last_frame-2 == cur_frmae_idx):  # 마지막 점의 경우 변화량을 계산할 필요가 없음
             slopes.append(slope)
             break
         else:
-            dx = rx_values[i + 1] - rx_values[i]
-            dy = ry_values[i + 1] - ry_values[i] # 손목위치
+            dx = next_frame_idx - cur_frmae_idx # 손목위치가 있는 인덱스
+            cur_locate =  posepoints[cur_frmae_idx][4].get('y') # 오른 손목의 위치....
+            next_locate = posepoints[next_frame_idx][4].get('y')
+            dy = next_locate - cur_locate  # 프레임 인덱스
             slope = dy / dx
 
-            if (slope <= -8 and idx[0] != 0 and idx[1] == 0):  # 테이크어웨이 검사
-                dx_left = lx_values[i + 1] - lx_values[i]
-                dy_left = ly_values[i + 1] - ly_values[i]
-                slope_left = dy_left / dx_left
-                # print(slope_left)
+            if (idx[0] != -1 and slope <= -8 and idx[0] < cur_frmae_idx and idx[1] == -1):  # 테이크어웨이 검사
+                dy_left = ly_values[cur_frmae_idx + 1] - ly_values[cur_frmae_idx]
+                slope_left = dy_left / dx
                 if (slope_left <= -8):
-                    idx[1] = rx_values[i - 1]
+                    idx[1] = cur_frmae_idx - 1
 
-            if (idx[1] != 0 and idx[2] == 0 and slope > 0):  # 탑 검사
-                dx_left = lx_values[i + 1] - lx_values[i]
-                dy_left = ly_values[i + 1] - ly_values[i]
-                slope_left = dy_left / dx_left
+            if (idx[1] != -1 and idx[1] < cur_frmae_idx and idx[2] == -1 and slope > 5):  # 탑 검사
+                dy_left = ly_values[cur_frmae_idx + 1] - ly_values[cur_frmae_idx]
+                slope_left = dy_left / dx
                 if (slope_left > 0):
-                    idx[2] = rx_values[i - 1]
-            if (idx[2] != 0 and idx[4] == 0 and slope < 0 and l_downpoint - 40 < ly_values[i] ):  # 임펙트(idx=4) 검사
-                dx_left = lx_values[i + 1] - lx_values[i]
-                dy_left = ly_values[i + 1] - ly_values[i]
-                slope_left = dy_left / dx_left
-                if (slope_left < 0 and r_downpoint - 40 < ry_values[i]):
-                    idx[4] = rx_values[i]
+                    idx[2] = cur_frmae_idx
+            if (idx[2] != -1 and idx[2] < cur_frmae_idx and idx[4] == -1 and slope < -2 and r_downpoint - r_error < cur_locate):  # 임펙트(idx=4) 검사
+                idx[4] = cur_frmae_idx
+                break
             # if(idx[4]!=0 and idx[6]==0 and slope>0) : #피니쉬 검사 : 는 임팩트 이후의 손목 최대값으로 하기로 함..
             #    dx_left = lx_values[i+1] - lx_values[i]
             #    dy_left = ly_values[i+1] - ly_values[i]
@@ -497,19 +513,27 @@ def pose_classifier(posepoints,size):
             #        idx[6] = rx_values[i-1]
             slopes.append(slope)
 
+
     plt.scatter(lx_values, ly_values)
     plt.scatter(rx_values, ry_values)
 
     plt.legend(['left', 'right'])
-   # plt.show()
+    plt.show()
 
-    # -------------- 이후 피니쉬는 손목의 위치가 가장 높을때 이므로 (임팩트 이후의) 손목 높이의 최대값을 구한다.
+#----------2번 탑스윙 재 계산 ------------
     impact = idx[4]
+    right_wrist1 = right_wrist[0:impact]
+ # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
+    rtop = right_wrist.index(min(right_wrist1))  # 손목의 높이가 최대가 되는 곳을 리턴
+    idx[2] = rtop
+
+# -------------- 이후 피니쉬는 손목의 위치가 가장 높을때 이므로 (임팩트 이후의) 손목 높이의 최대값을 구한다.
+
     left_wrist = left_wrist[impact:]
     right_wrist = right_wrist[impact:]
     ltop = left_wrist.index(min(left_wrist))  # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
     rtop = right_wrist.index(min(right_wrist))  # 손목의 높이가 최대가 되는 곳을 리턴
-    ltop = ltop+impact
+    ltop = ltop+impact #임펙트인덱스만큼 뒤에서 자르고 최대값을 찾았으므로 더해준다
     rtop = rtop+impact
     if(rtop > idx[4]) : # 피니쉬라고 생각된느프레임이 임팩트 이후인지 확인
         idx[6] = rtop
@@ -518,20 +542,18 @@ def pose_classifier(posepoints,size):
     else:
         idx[6] = -1 # 피니쉬를 찾을 수 없을때 -1 리턴
     # -------------- 이후 사이값으로 다운과 팔로스루 구하기
-    idx[3] = int((idx[4] + idx[2]) / 2)
-    idx[5] = int((idx[6] + idx[4]) / 2)
-
+    idx[3] = int((idx[4] - idx[2]) * 0.666666 ) + idx[2]  #다운 2/3지점으로 설정
+    idx[5] = int((idx[6] + idx[4]) / 2) #팔로스루
 
     return idx
-
 #-----------
 def assess_pose(posepoints,pose_idx):
     hscore = check_headup(posepoints,pose_idx)
     bscore = check_body_sway(posepoints,pose_idx)
     cscore = check_chickin_wing(posepoints,pose_idx)
 
-    score_list = [hscore,bscore,cscore] #가장 심각한 실수가 어떤것지 찾기위해
-    worst = score_list.index(min(score_list)) #사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
+    score_list = [hscore,bscore,cscore] # 가장 심각한 실수가 어떤것지 찾기위해
+    worst = score_list.index(min(score_list)) # 사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
 
     if worst == 0 : #head_up이 가장 심각한 실수
         #서버에 문제가 있는 헤드업 사진을 전송하기
@@ -550,6 +572,7 @@ def assess_pose(posepoints,pose_idx):
     for i in score_list:
         total_score = total_score+i
         #100점에서 발생한 실수만큼 뺀다
+    print ("당신의 포즈 점수는")
     print(total_score)
     return total_score
 
@@ -579,9 +602,9 @@ def check_body_sway (posepoints,pose_idx) :
     top_point = posepoints[top_idx]
     finish_point = posepoints[finish_idx]
 
-    spine_angle_top = get_angle(top_point[1],top_point[8],top_point[12])
+    spine_angle_top_swing = get_angle(top_point[1],top_point[8],top_point[12])
     spine_angle_finish = get_angle(finish_point[1], finish_point[8],finish_point[12])
-    dif_angle = abs(spine_angle_finish) - abs(spine_angle_top)
+    dif_angle = abs(spine_angle_finish) - abs(spine_angle_top_swing)
 
     dif_angle = abs(dif_angle) #차이를 절대값으로 점수 계산
 
@@ -608,7 +631,7 @@ def check_chickin_wing(posepoints,pose_idx):
 
     return -30
 
-filename = 'gpps'
+filename = 'badpose'
 vidname = filename+'.mp4'
 pathname='examples/media/'+vidname
 #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
@@ -616,8 +639,7 @@ pathname='examples/media/'+vidname
 size,frame=get_frame(vidname)
 posepoints = get_keypoints(filename,size)
 pose_idx = pose_classifier(posepoints,size)  #포즈 분류하기
-
 pose_img = cut_vid(frame, pose_idx)  #mat이미지 반환받기
 draw_image(pose_img,pose_idx)   #골격 그리기
-cut_img(posepoints, pose_img, pose_idx, 0) #서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
+#cut_img(posepoints, pose_img, pose_idx, 0) #서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
 assess_pose(posepoints,pose_idx) #포즈 평가하기

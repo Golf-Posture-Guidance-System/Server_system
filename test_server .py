@@ -464,7 +464,7 @@ def get_error(arr):  # 손목 위치의 허용 오차 구하기
     return error
 
 
-def pose_classifier(posepoints, size):
+def pose_classifier(posepoints):
     idx = [-1, -1, -1, -1, -1, -1, -1]  # 어,테이크어웨이,탑,다운,임펙,팔로스루,피니쉬
 
     # -------------- 손목의 x좌표 변화량 감지를 통해 스윙이 시작하는지(어드래스)감지)----
@@ -525,23 +525,18 @@ def pose_classifier(posepoints, size):
                 slope_left = dy_left / dx
                 if (slope_left <= -8):
                     idx[1] = cur_frmae_idx + 2
+                    continue
 
-            if (idx[1] != -1 and idx[1] < cur_frmae_idx and idx[2] == -1 and slope > -4):  # 탑 검사
-                dy_left = ly_values[cur_frmae_idx + 1] - ly_values[cur_frmae_idx]
+            if (idx[1] != -1) and idx[1] < cur_frmae_idx and idx[2] == -1 and slope >= 20:  # 탑 검사
+                dy_left = posepoints[next_frame_idx][7].get('y') - posepoints[cur_frmae_idx][7].get('y')
                 slope_left = dy_left / dx
-                if (slope_left > 0):
-                    idx[2] = cur_frmae_idx + 1
-            if (idx[2] != -1 and idx[2] < cur_frmae_idx and idx[
-                4] == -1 and slope < -2 and r_downpoint - r_error < cur_locate):  # 임펙트(idx=4) 검사
+                if slope_left > 0:
+                    idx[2] = cur_frmae_idx -2
+                    continue
+            if (idx[2] != -1 and idx[2] < cur_frmae_idx and idx[4] == -1 and slope < -2 and r_downpoint - r_error < cur_locate):
                 idx[4] = cur_frmae_idx
                 break
-            # if(idx[4]!=0 and idx[6]==0 and slope>0) : #피니쉬 검사 : 는 임팩트 이후의 손목 최대값으로 하기로 함..
-            #    dx_left = lx_values[i+1] - lx_values[i]
-            #    dy_left = ly_values[i+1] - ly_values[i]
-            #    slope_left = dy_left/dx_left
-            #    print(slope_left)
-            #    if(slope_left>0):
-            #        idx[6] = rx_values[i-1]
+
             slopes.append(slope)
 
     plt.scatter(lx_values, ly_values)
@@ -554,19 +549,21 @@ def pose_classifier(posepoints, size):
     impact = idx[4]
     right_wrist1 = right_wrist[0:impact]
     # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
-    rtop = right_wrist.index(min(right_wrist1))  # 손목의 높이가 최대가 되는 곳을 리턴
-    idx[2] = rtop
+    rtop_idx = right_wrist.index(min(right_wrist1))  # 손목의 높이가 최대가 되는 곳을 리턴
+    rtop = min(right_wrist1)
+    if (posepoints[idx[2]][4].get('y')>rtop+r_error ):
+        idx[2] = rtop_idx
 
     # -------------- 이후 피니쉬는 손목의 위치가 가장 높을때 이므로 (임팩트 이후의) 손목 높이의 최대값을 구한다.
 
     left_wrist = left_wrist[impact:]
     right_wrist = right_wrist[impact:]
     ltop = left_wrist.index(min(left_wrist))  # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
-    rtop = right_wrist.index(min(right_wrist))  # 손목의 높이가 최대가 되는 곳을 리턴
+    rtop_idx = right_wrist.index(min(right_wrist))  # 손목의 높이가 최대가 되는 곳을 리턴
     ltop = ltop + impact  # 임펙트인덱스만큼 뒤에서 자르고 최대값을 찾았으므로 더해준다
-    rtop = rtop + impact
-    if (rtop > idx[4]):  # 피니쉬라고 생각된느프레임이 임팩트 이후인지 확인
-        idx[6] = rtop
+    rtop_idx = rtop_idx + impact
+    if (rtop_idx > idx[4]):  # 피니쉬라고 생각된느프레임이 임팩트 이후인지 확인
+        idx[6] = rtop_idx
     elif (ltop > idx[4]):  # 왼쪽손목의 최대높이를 피니쉬로 설정
         idx[6] = ltop
     else:
@@ -576,6 +573,9 @@ def pose_classifier(posepoints, size):
     idx[5] = int((idx[6] + idx[4]) / 2)  # 팔로스루
     print(idx)
     return idx
+
+
+
 
 
 # -----------
@@ -672,8 +672,9 @@ pathname = 'examples/media/' + vidname
 # path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' + pathname +  ' --write_json output/ --display 0 --render_pose 0')
 size, frame = get_frame(vidname)
 posepoints = get_keypoints(filename, size)
-pose_idx = pose_classifier(posepoints, size)  # 포즈 분류하기
+pose_idx = pose_classifier(posepoints)  # 포즈 분류하기
+
 pose_img = cut_vid(frame, pose_idx)  # mat이미지 반환받기
 draw_image(pose_img, pose_idx)  # 골격 그리기
 cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
-# assess_pose(posepoints,pose_idx) #포즈 평가하기
+assess_pose(posepoints,pose_idx) #포즈 평가하기

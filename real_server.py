@@ -736,6 +736,8 @@ def chat():
         return login(msg_received)
     elif msg_subject == "video":
         return video(msg_received)
+    elif msg_subject == "MainMenu":
+        return MainMenu(msg_received)
     else:
         return "Invalid request."
 def video(msg_received):
@@ -782,6 +784,18 @@ def register(msg_received):
     except Exception as e:
         print("Error while inserting the new record :", repr(e))
         return "failure"
+
+def MainMenu(msg_received):
+    userid = msg_received["userid"]
+    select_query = "SELECT name FROM users where id = " + "'" + userid + "'"
+    db_cursor.execute(select_query)
+    records = db_cursor.fetchall()
+    result = ",".join(records[0])
+    username = result + "님"
+    if len(records) == 0:
+        return username
+    else:
+        return username
 
 def login(msg_received):
     username = msg_received["userid"]

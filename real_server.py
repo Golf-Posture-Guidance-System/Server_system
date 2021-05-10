@@ -744,17 +744,7 @@ def video(msg_received):
     userid = msg_received["userid"]
     videoURL = msg_received["URL"]
 
-    select_query = "SELECT * FROM video where URL = " + "'" + videoURL + "'"
-    db_cursor.execute(select_query)
-    records = db_cursor.fetchall()
-    if len(records) != 0:
-        return "Another user used the username. Please chose another username."
-
-    insert_query = "INSERT INTO video (id, URL) VALUES (%s,%s)"
-    insert_values = (userid, videoURL)
     try:
-        db_cursor.execute(insert_query, insert_values)
-        chat_db.commit()
         time.sleep(2)
         downloadFile(videoURL)
         createFolder('./' + userid)

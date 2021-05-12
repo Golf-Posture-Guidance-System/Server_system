@@ -71,30 +71,28 @@ def get_distan(point1, point2):  # 두 점 사이의 거리를 구하는 함수
 def get_humansize(posepoints):  # 인체 골격의 크기 구하기
     top = posepoints[0][15]
     bot = posepoints[0][19]
-    hight = get_distan(top, bot)
-    add = get_distan(posepoints[0][0], posepoints[0][1])
-    return hight + add
+    hight = top.get('y')-bot.get('y')
+    return abs(hight)
 
 
-def cut_img(posepoints, pose_img, pose_index, size):
+def cut_img(posepoints, pose_img, pose_index, dst_size = 300):
     centers = []  # 프레임별로 몸 중심(8번관절)이 따로 필요하여 리스트로..
-    s = int(get_humansize(posepoints)) * 3
+    h_size = int(get_humansize(posepoints)) #사람 크기
     for i in pose_index:  # 어드래스가 있는 프레임,테잌어웨이프레임.. 등등 순회
         centers.append((posepoints[i][8].get('x'), posepoints[i][8].get('y')))
     for idx in range(0, 7):  # 0,1,2,3,4,5,6 선형의 시간복잡도
+
         img = pose_img[idx]
+        #img = imutils.resize(img, width=600)
         x, y = centers[idx][0], centers[idx][1]
+
+        haf_size = h_size*2/3
         num = str(idx)
-        # print("결과 이미지 크기는",s*2)
         # 여기에--- 모바일 영상 전송시 사이즈 조절 팔요시 size 매개변수로 ! 코드작성
-        # roi = img[int(y-s):int(y+s), int(x-s):int(x+s)].copy()
-        # [y시작:y끝             ,x시작:x끝]
-        # pose_img[idx] = roi
-        img = imutils.resize(img, width=500)
+        roi = img[int(y-haf_size):int(y+haf_size), int(x-haf_size):int(x+haf_size)].copy()
+        #        [y시작:y끝             ,x시작:x끝]
+        img = roi.copy()
         cv2.imshow("new" + num, img)
-        # 필요시 image저장코드 :
-        # fname = "{}.jpg".format("{0:05d}")
-        # cv2.imwrite('result'+num+fname, img) # save frame as JPEG file
     cv2.waitKey()
     cv2.destroyAllWindows()
 
@@ -665,11 +663,11 @@ def check_chickin_wing(posepoints, pose_idx):
     return -30
 
 
-filename = 'badpose'
+filename = 'demo'
 vidname = filename + '.mp4'
 pathname = 'examples/media/' + vidname
 # 아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-# path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' + pathname +  ' --write_json output/ --display 0 --render_pose 0')
+#path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' + pathname +  ' --write_json output/ --display 0 --render_pose 0')
 size, frame = get_frame(vidname)
 posepoints = get_keypoints(filename, size)
 pose_idx = pose_classifier(posepoints)  # 포즈 분류하기

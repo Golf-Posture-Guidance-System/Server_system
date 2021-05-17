@@ -1,17 +1,29 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import sys, os
-sys.path.append(os.pardir)  # 부모 디렉터리의 파일을 가져올 수 있도록 설정
+import cv2
 import json
-from module.set_data import *
+import math
+
 sys.path.append(os.pardir)  # 부모 디렉터리의 파일을 가져올 수 있도록 설정
 
 
-# In[3]:
+INF = 10000
+
+error = 0
+
+
+def get_frame(vidname,pathname):  # 모든 프레임을 다 저장. 따라서 경량화 하여 오버헤드 줄일 수 있다.
+    vidcap = cv2.VideoCapture(pathname)
+    frame = []
+
+    while True:
+        success, image = vidcap.read()
+        if not success:
+            break
+        frame.append(image.copy())
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    size = len(frame)
+    return size, frame
 
 
 def get_keypoints(vidname,size):
@@ -40,57 +52,62 @@ def get_keypoints(vidname,size):
         posepoints.append(posepoint.copy())
     return posepoints
 
-def get_slope(x1,y1,x2,y2): #두 점의 좌표를 가지고 기울기를 구하는 함수 (이번 코드에는 사용하지 않았음 ㅎㅎ;)
-    if x1 != x2: #분모가 0이되는 상황 방지
-        radian = math.arctan((y2-y1)/(x2-x1))
-    return radian
+
+def slope(p1, p2):
+    if (p1.get('x') == p2.get('x')):
+        return 0
+    else:
+        return (p2.get('y') - p1.get('y')) / (p2.get('x') - p1.get('y'))
+
+
+def get_slope_R(x1, y1, x2, y2):  # 두 점의 좌표를 가지고 수직선과의 각도를 구하는 함수
+    if x1 != x2:  # 분모가 0이되는 상황 방지
+        radian = math.atan2((y2 - y1), (x2 - x1))
+        return radian
+    else:
+        return 0
+
+
+def get_slope_R1(p1, p2):
+    p1x = p1.get('x')
+    p1y = p1.get('y')
+    p2x = p2.get('x')
+    p2y = p2.get('y')
+    radian = math.atan((p2y - p1y) / (p2x - p1x))
+    andgle = radian * (180 / math.pi)
+    return andgle
+
+
+def get_slope(p1, p2):
+    p1x = p1.get('x')
+    p1y = p1.get('y')
+    p2x = p2.get('x')
+    p2y = p2.get('y')
+    radian = get_slope_R(p1x, p1y, p2x, p2y)
+    andgle = radian * (180 / math.pi)
+    return andgle
+
 
 def get_distan(point1,point2): #두 점 사이의 거리를 구하는 공식
     a = point1.get('x') - point2.get('x')
     b = point2.get('y') - point2.get('y')
     return math.sqrt((a*a) + (b*b))
 
-def get_angle(joint1,joint2,joint3): #두 몸체의 기울기를 가지고 관절의 각도를구하는 함수      locate ->  j1 ------ j2 ------- j3
-    if(joint1.get('x')-joint2.get('x')) == 0:
+
+def get_angle(joint1, joint2, joint3):  # 두 몸체의 기울기를 가지고 관절의 각도를구하는 함수      locate ->  j1 ------ j2 ------- j3
+    if (joint1.get('x') - joint2.get('x')) == 0:
         return 0
-    if(joint3.get('x')-joint2.get('x')) == 0:
+    if (joint3.get('x') - joint2.get('x')) == 0:
         return 0
-    radi1 = math.atan2((joint1.get('y')-joint2.get('y')),(joint1.get('x')-joint2.get('x')))
-    radi2 = math.atan2((joint3.get('y')-joint2.get('y')),(joint3.get('x')-joint2.get('x')))
-    radian = radi1-radi2
-    #print(radian)
-    andgle = radian * (180 / math.pi)
-    return abs(andgle) #각도를절댓값으로 변환 ^^
+    radi1 = math.atan2((joint1.get('y') - joint2.get('y')), (joint1.get('x') - joint2.get('x')))
+    radi2 = math.atan2((joint3.get('y') - joint2.get('y')), (joint3.get('x') - joint2.get('x')))
+    radian = radi1 - radi2
+    # print(radian)
+    angle = radian * (180 / math.pi)
+    if (abs(angle) > 180):
+        angle = 360 - abs(angle)
+    return angle
 
-def cut_frame(posepoints) : #프레임을 어깨 각도를 통해 인식
-    size = len(posepoints)
-    flag = [0,0,0,  #[0. 어드래스, 1테이크어웨이,2백스윙
-            0,0,0]  # 3탑,4 다운스윙,5 임팩트]
-
-    left_wrist = get_y_wrist(posepoints,'left')
-    right_wrist = get_y_wrist(posepoints, 'right')
-    
-    
-    where_top = left_wrist.index(min(left_wrist)) #손목의 높이가 최대가 되는 곳을 리턴 (y축이 작을 수록 상단에 위치)
-    print(where_top)
-    where_top = right_wrist.index(min(right_wrist))  # 손목의 높이가 최대가 되는 곳을 리턴
-    print(where_top)
-
-    for i in range(size) :
-        posepoint = posepoints[i] #i번째 프레임의 몸체 좌표를 저장
-        if (is_adress(posepoint))  and (flag[1] ==0) :
-            flag[0] = 1
-            #print("어드래스!")
-        if (flag[0] == 1) and (is_takeAway(posepoint)) and flag[2] == 0:
-            flag[2] = 1
-            #print("테이크어웨이")
-
-        #angle_left_houlder = get_angle(posepoints[i][1], posepoints[i][2], posepoints[i][3])
-        #angle_right_shoulder = get_angle(posepoints[i][1], posepoints[i][5], posepoints[i][6])
-        #if(angle_right_shoulder <= 50) or (angle_left_shoulder <= 50):
-         #   print("어드래스 시작")
-        #else :
-         #   print("?")
 
 def get_y_wrist(posepoints,lr) : 
     #손목 위치의 함수를 반환,프레임배열과, 왼오 옵
@@ -114,6 +131,7 @@ def get_y_wrist(posepoints,lr) :
             else:y_point_arr.append(rwrist)            
     return y_point_arr      
 
+
 def get_x_wrist(posepoints,lr) : 
     #손목 위치의 함수를 반환,프레임배열과, 왼오 옵
     y_point_arr = []
@@ -134,42 +152,8 @@ def get_x_wrist(posepoints,lr) :
             elif (posepoints[i][4].get('c') < 0.2):
                 y_point_arr.append(INF)
             else:y_point_arr.append(rwrist)            
-    return y_point_arr   
-            
-def is_adress(posepoint) : #손과 어깨의 연결이 예각삼각형이여야한다
-    left_hand = posepoint[4]
-    right_hand = posepoint[7]
-    head_size = get_distan(posepoint[17], posepoint[18])
-    hand_dis = get_distan(posepoint[4], posepoint[7])
-    left_elbow_angel = get_angle(posepoint[2], posepoint[3],posepoint[4])
-    right_elbow_angle = get_angle(posepoint[5], posepoint[6],posepoint[7])
+    return y_point_arr
 
-    if head_size >= hand_dis : #머리 크기보다 손목사이의 거리가 좁으면 모아져 있다고 판단
-        #print("손이 모아져 있습니다.")
-        if (left_elbow_angel >= 160) and (right_elbow_angle >= 160):
-            #print("팔꿈치가 펴져있습니다.")
-            #좌 우 팔꿈치가 어느정도 펴져 있어야 한다.
-            return True
-
-def is_takeAway(posepoint) :
-    head_size = get_distan(posepoint[17], posepoint[18])
-    hand_dis = get_distan(posepoint[4], posepoint[7])
-
-    if  head_size >= hand_dis : #머리 크기보다 손목사이의 거리가 좁으면 모아져 있다고 판단
-        if posepoint[7].get('x') > posepoint[8].get('y'):
-            #우측 팔목의 x축 배꼽아래보다 좌측에 있다.
-            #print("손이 배꼽 아래에 있다.")
-            return True
-
-def is_top(l_wrist,r_wrist):
-    x_values = []
-    y_values = []
-    for i in range(0,l_wrist.len):
-        x_values.append(l_wrist[i])
-        y_values.append(i)
-    plt.plot(x_values,y_values)
-    plt.show()
-    return True
 
 def get_head(posepoints):
     l_ear =posepoints[1][17]
@@ -178,13 +162,4 @@ def get_head(posepoints):
     size = get_distan(l_ear,r_ear)
     print(size)
     return int(size)
-
-
-
-
-
-# In[ ]:
-
-
-
 

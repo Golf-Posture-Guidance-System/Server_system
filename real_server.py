@@ -1,25 +1,16 @@
-import os
 import flask
 import boto3
-import cv2
-import json
-import math
-import sys
 import imutils
 import time
 from flask import Flask, render_template, request, redirect, url_for
 from matplotlib import pyplot as plt
 import mysql.connector
 from PIL import ImageFont, ImageDraw, Image
-
 import os
 import cv2
 import json
 import math
 import sys
-import imutils
-from matplotlib import pyplot as plt
-from PIL import ImageFont, ImageDraw, Image
 
 INF = 10000
 

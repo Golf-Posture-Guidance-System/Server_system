@@ -26,18 +26,18 @@ def get_frame(vidname,pathname):  # 모든 프레임을 다 저장. 따라서 �
     return size, frame
 
 
-def get_keypoints(vidname,size):
+def get_keypoints(filename, size):
     posepoints = []
-    for i in range(size+1): # 0~num i를 1씩 증가시키면서 반복
-        num = format(i,"012") # 0000000000000 문자열로 저장(12자리 0)
-        jfilename = vidname +"_"+num +"_keypoints.json"
-        with open('json/'+jfilename, 'r') as f:
+    for i in range(size):  # 0~num i를 1씩 증가시키면서 반복
+        num = format(i, "012")  # 0000000000000 문자열로 저장(12자리 0)
+        jFileName = filename + "_" + num + "_keypoints.json"
+        with open('output/' + jFileName, 'r') as f:
             json_data = json.load(f)  # json파일 불러오기댐
             # 첫번째 사람만 본다. 2명일때 예외처리 나중에해야
             keypoint = {'x': 0, 'y': 0, 'c': 0}  # 마지막 c는 신뢰도..0.3이하면 신뢰하지 않는다
             posepoint = []
 
-            if not json_data['people'] : #openpose의 output은 물체에 사람이 잡히지 않을경우 poeple배열을 비운다. 빈 리스트인지 확인하는 코드
+            if not json_data['people']:  # openpose의 output은 물체에 사람이 잡히지 않을경우 poeple배열을 비운다. 빈 리스트인지 확인하는 코드
                 return posepoints
 
             for j in range(75):  # 관절개수가 25개(0~24)

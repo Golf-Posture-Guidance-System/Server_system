@@ -1,6 +1,7 @@
 import math
 import cv2
 from module.set_data import *
+import imutils
 
 def cut_vid(frame, pose_index):
     poseimg = []  # mat타입의 이미지가 저장 될 리스트
@@ -30,7 +31,6 @@ def cut_img(posepoints, pose_img, pose_index, dst_size = 300):
     for idx in range(0, 7):  # 0,1,2,3,4,5,6 선형의 시간복잡도
 
         img = pose_img[idx]
-        #img = imutils.resize(img, width=600)
         x, y = centers[idx][0], centers[idx][1]
 
         haf_size = h_size*2/3
@@ -39,6 +39,7 @@ def cut_img(posepoints, pose_img, pose_index, dst_size = 300):
         roi = img[int(y-haf_size):int(y+haf_size), int(x-haf_size):int(x+haf_size)].copy()
         #        [y시작:y끝             ,x시작:x끝]
         img = roi.copy()
+        img = imutils.resize(img, width=600)
         cv2.imshow("new" + num, img)
     cv2.waitKey()
     cv2.destroyAllWindows()

@@ -125,8 +125,15 @@ def get_error(arr):  # 손목 위치의 허용 오차 구하기
     maxi = max(arr)
     dif = maxi - mini
     error = (dif / 5)
-    print(error)
     return error
+
+def to_wrist_accuracy (posepoints,idx): #손목의 위치가 있는 보이는 곳 까지 프레임을 빼주는 재귀함수
+    if posepoints[idx[5]][7].get('c')< 0.3:
+        idx[5] -= 1
+        to_wrist_accuracy(posepoints,idx)
+        return idx
+    else :
+        return idx
 
 def pose_classifier(posepoints):
     idx = [-1, -1, -1, -1, -1, -1, -1]  # 어,테이크어웨이,탑,다운,임펙,팔로스루,피니쉬
@@ -236,5 +243,6 @@ def pose_classifier(posepoints):
     # -------------- 이후 사이값으로 다운과 팔로스루 구하기
     idx[3] = int((idx[4] - idx[2]) * 0.666666) + idx[2]  # 다운 2/3지점으로 설정
     idx[5] = int((idx[6] + idx[4]) / 2)  # 팔로스루
+    idx = to_wrist_accuracy(posepoints,idx)
     print(idx)
     return idx

@@ -135,6 +135,8 @@ def to_wrist_accuracy (posepoints,idx): #손목의 위치가 있는 보이는 �
     else :
         return idx
 
+
+
 def pose_classifier(posepoints):
     idx = [-1, -1, -1, -1, -1, -1, -1]  # 어,테이크어웨이,탑,다운,임펙,팔로스루,피니쉬
 
@@ -145,7 +147,7 @@ def pose_classifier(posepoints):
     lx_values, ly_values, rx_values, ry_values = get_axis(left_wrist, right_wrist)
     slopes = []
     slope = 0
-    for i in range(0, len(rx_values)):
+    for i in range(0, len(rx_values)): #bode25 4번 관절로 판단.
         if (len(rx_values) - 1 == i):  # 마지막 점의 경우 변화량을 계산할 필요가 없음
             slopes.append(slope)
             break
@@ -215,7 +217,7 @@ def pose_classifier(posepoints):
     plt.scatter(rx_values, ry_values)
 
     plt.legend(['left', 'right'])
-    plt.show()
+    #plt.show()
 
     # ----------2번 탑스윙 재 계산 ------------
     impact = idx[4]
@@ -230,19 +232,28 @@ def pose_classifier(posepoints):
 
     left_wrist = left_wrist[impact:]
     right_wrist = right_wrist[impact:]
-    ltop = left_wrist.index(min(left_wrist))  # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
+    ltop_idx = left_wrist.index(min(left_wrist))  # 손목의 높이가 최대가 되는 곳(영상의 프레임 인덱스)을 리턴 (y축이 작을 수록 상단에 위치)
     rtop_idx = right_wrist.index(min(right_wrist))  # 손목의 높이가 최대가 되는 곳을 리턴
-    ltop = ltop + impact  # 임펙트인덱스만큼 뒤에서 자르고 최대값을 찾았으므로 더해준다
+    ltop_idx = ltop_idx + impact  # 임펙트인덱스만큼 뒤에서 자르고 최대값을 찾았으므로 더해준다
     rtop_idx = rtop_idx + impact
+
+    length = len(posepoints)
+
     if (rtop_idx > idx[4]):  # 피니쉬라고 생각된느프레임이 임팩트 이후인지 확인
-        idx[6] = rtop_idx
-    elif (ltop > idx[4]):  # 왼쪽손목의 최대높이를 피니쉬로 설정
-        idx[6] = ltop
+        if(rtop_idx+1 < length):
+            idx[6] = rtop_idx
+        else:
+            idx[6] = rtop_idx
+    elif ltop_idx > idx[4]:  # 왼쪽손목의 최대높이를 피니쉬로 설정
+        if (ltop_idx + 1 >= length):
+            idx[6] = ltop_idx + 1
+        else:
+            idx[6] = ltop_idx
     else:
         idx[6] = -1  # 피니쉬를 찾을 수 없을때 -1 리턴
     # -------------- 이후 사이값으로 다운과 팔로스루 구하기
     idx[3] = int((idx[4] - idx[2]) * 0.666666) + idx[2]  # 다운 2/3지점으로 설정
-    idx[5] = int((idx[6] + idx[4]) / 2)  # 팔로스루
-    idx = to_wrist_accuracy(posepoints,idx)
+    idx[5] = int((idx[6] - idx[4]) * 0.333333) + idx[4]  # 팔로스루
+    idx = to_wrist_accuracy(posepoints, idx)
     print(idx)
     return idx

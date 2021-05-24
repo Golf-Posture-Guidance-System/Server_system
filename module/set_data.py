@@ -31,7 +31,7 @@ def get_keypoints(filename, size):
     for i in range(size):  # 0~num i를 1씩 증가시키면서 반복
         num = format(i, "012")  # 0000000000000 문자열로 저장(12자리 0)
         jFileName = filename + "_" + num + "_keypoints.json"
-        with open('json/' + jFileName, 'r') as f:
+        with open('output/' + jFileName, 'r') as f:
             json_data = json.load(f)  # json파일 불러오기댐
             # 첫번째 사람만 본다. 2명일때 예외처리 나중에해야
             keypoint = {'x': 0, 'y': 0, 'c': 0}  # 마지막 c는 신뢰도..0.3이하면 신뢰하지 않는다

@@ -29,18 +29,25 @@ def cut_img(posepoints, pose_img, pose_index, dst_size = 300):
     for i in pose_index:  # 어드래스가 있는 프레임,테잌어웨이프레임.. 등등 순회
         centers.append((posepoints[i][8].get('x'), posepoints[i][8].get('y')))
     for idx in range(0, 7):  # 0,1,2,3,4,5,6 선형의 시간복잡도
-
         img = pose_img[idx]
         x, y = centers[idx][0], centers[idx][1]
-
-        haf_size = h_size*2/3
         num = str(idx)
-        # 여기에--- 모바일 영상 전송시 사이즈 조절 팔요시 size 매개변수로 ! 코드작성
-        roi = img[int(y-haf_size):int(y+haf_size), int(x-haf_size):int(x+haf_size)].copy()
-        #        [y시작:y끝             ,x시작:x끝]
-        img = roi.copy()
-        img = imutils.resize(img, width=600)
-        cv2.imshow("new" + num, img)
+        haf_size = h_size*2/3
+        if x < y:
+            small_side = x
+        else :
+            small_side = y
+
+        if haf_size >= small_side:
+            haf_size = small_side
+            roi = img[int(y - haf_size):int(y + haf_size), int(x - haf_size):int(x + haf_size)].copy()
+            img = roi.copy()
+        else:
+            roi = img[int(y-haf_size):int(y+haf_size), int(x-haf_size):int(x+haf_size)].copy()
+            #        [y시작:y끝             ,x시작:x끝]
+            img = roi.copy()
+            img = imutils.resize(img, width=600)
+        #cv2.imshow("new" + num, img)
     cv2.waitKey()
     cv2.destroyAllWindows()
 
@@ -224,7 +231,8 @@ def draw_follow_through(img, posepoint):
     draw_line(posepoint[5], posepoint[6], img, red_color)
     draw_line(posepoint[6], posepoint[7], img, red_color)
     draw_line(posepoint[1], posepoint[5], img, orange_color)
-    draw_line(posepoint[2], posepoint[1], img, orange_color)
+    draw_line(posepoint[2],posepoint[1],img,orange_color)
+    draw_line(posepoint[5], posepoint[1], img, red_color)
     # 척추와 골반--
     draw_line(posepoint[1], posepoint[8], img, blue_color)
     draw_line(posepoint[9], posepoint[12], img, blue_color)
@@ -235,10 +243,14 @@ def draw_follow_through(img, posepoint):
 
 def draw_finish(img, posepoint):
     red_color = (0, 0, 255)
-    orange_color = (255, 165, 0)
+    blue_color = (255, 165, 0)
+    orange_color = (0, 165, 255)
 
-    draw_line(posepoint[1], posepoint[8], img, orange_color)
-    draw_line(posepoint[9], posepoint[12], img, orange_color)
+    draw_line(posepoint[1], posepoint[8], img, blue_color)
+    draw_line(posepoint[9], posepoint[12], img, blue_color)
+    #어깨
+    draw_line(posepoint[2],posepoint[1],img,orange_color)
+    draw_line(posepoint[5], posepoint[1], img, red_color)
 
     draw_line(posepoint[22], posepoint[19], img, red_color)  # 지평면
     ground_point = posepoint[8]
@@ -248,15 +260,14 @@ def draw_finish(img, posepoint):
     y = posepoint[15].get('y')
     x = lslope * (y - ground_point.get('y')) + ground_point.get('x')
     top_point = {'x': x, 'y': y}
-    #draw_point_line(ground_point, top_point, img)  # 지평면
     # draw_angle(posepoint[1], posepoint[8], top_point, result)
 
     draw_line(posepoint[12], posepoint[13], img, red_color)
     draw_line(posepoint[13], posepoint[14], img, red_color)
 
     # 척추와 골반--
-    draw_line(posepoint[1], posepoint[8], img, orange_color)
-    draw_line(posepoint[9], posepoint[12], img, orange_color)
+    draw_line(posepoint[1], posepoint[8], img, blue_color)
+    draw_line(posepoint[9], posepoint[12], img, blue_color)
     draw_angle(posepoint[12], posepoint[13], posepoint[14], img)  # 좌측(그림에서 우측)무릎의 굽혀짐
 
 

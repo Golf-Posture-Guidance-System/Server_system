@@ -1,6 +1,6 @@
 import math
 import cv2
-from module.set_data import *
+#from module.set_data import *
 import imutils
 
 def cut_vid(frame, pose_index):
@@ -287,3 +287,50 @@ def draw_image(posepoints,pose_img, pose_idx):
     draw_impact(pose_img[4], posepoints[impact_idx])
     draw_follow_through(pose_img[5], posepoints[follow_through])
     draw_finish(pose_img[6], posepoints[finish])
+
+
+def get_angle(joint1, joint2, joint3):  # 두 몸체의 기울기를 가지고 관절의 각도를구하는 함수      locate ->  j1 ------ j2 ------- j3
+    if (joint1.get('x') - joint2.get('x')) == 0:
+        return 0
+    if (joint3.get('x') - joint2.get('x')) == 0:
+        return 0
+    radi1 = math.atan2((joint1.get('y') - joint2.get('y')), (joint1.get('x') - joint2.get('x')))
+    radi2 = math.atan2((joint3.get('y') - joint2.get('y')), (joint3.get('x') - joint2.get('x')))
+    radian = radi1 - radi2
+    # print(radian)
+    angle = radian * (180 / math.pi)
+    if (abs(angle) > 180):
+        angle = 360 - abs(angle)
+    return angle
+
+def get_slope(p1, p2):
+    p1x = p1.get('x')
+    p1y = p1.get('y')
+    p2x = p2.get('x')
+    p2y = p2.get('y')
+    radian = get_slope_R(p1x, p1y, p2x, p2y)
+    andgle = radian * (180 / math.pi)
+    return andgle
+
+def get_slope_R(x1, y1, x2, y2):  # 두 점의 좌표를 가지고 수직선과의 각도를 구하는 함수
+    if x1 != x2:  # 분모가 0이되는 상황 방지
+        radian = math.atan2((y2 - y1), (x2 - x1))
+        return radian
+    else:
+        return 0
+
+
+def get_slope_R1(p1, p2):
+    p1x = p1.get('x')
+    p1y = p1.get('y')
+    p2x = p2.get('x')
+    p2y = p2.get('y')
+    radian = math.atan((p2y - p1y) / (p2x - p1x))
+    andgle = radian * (180 / math.pi)
+    return andgle
+
+def slope(p1, p2):
+    if (p1.get('x') == p2.get('x')):
+        return 0
+    else:
+        return (p2.get('y') - p1.get('y')) / (p2.get('x') - p1.get('y'))

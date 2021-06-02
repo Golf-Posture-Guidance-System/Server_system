@@ -110,4 +110,4 @@ def assess_pose(posepoints, pose_idx):
 
     print("당신의 포즈 점수는")
     print(total_score)
-    return total_score, worst
+    return score_list

@@ -1,5 +1,5 @@
 from module.set_data import *
-
+from real_server import *
 def check_chiken_wing(posepoints, pose_idx):
     follow_through_idx = pose_idx[5]
     follow_through = posepoints[follow_through_idx]
@@ -87,8 +87,10 @@ def assess_pose(posepoints, pose_idx):
     additional = additional_point(posepoints, pose_idx)
     score_list = [cscore, bscore, fscore,additional]  # 가장 심각한 실수가 어떤것지 찾기위해
     worst = score_list.index(min(score_list))  # 사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
-
-    if worst == 0:  # check_chiken_wing 이 가장 심각한 실수
+    score = sum(score_list[0:3])
+    if score >= 0:
+        print("완벽한 스윙이네요!")
+    elif worst == 0:  # check_chiken_wing 이 가장 심각한 실수
         # 서버에 문제가 있는 헤드업 사진을 전송하기
         # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
         print("치킨윙이 발생했네요 팔로스루시 팔을 폅시다.")
@@ -110,4 +112,4 @@ def assess_pose(posepoints, pose_idx):
 
     print("당신의 포즈 점수는")
     print(total_score)
-    return score_list
+    return total_score

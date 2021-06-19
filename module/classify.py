@@ -255,5 +255,4 @@ def pose_classifier(posepoints):
     idx[3] = int((idx[4] - idx[2]) * 0.666666) + idx[2]  # 다운 2/3지점으로 설정
     idx[5] = int((idx[6] - idx[4]) * 0.333333) + idx[4]  # 팔로스루
     idx = to_wrist_accuracy(posepoints, idx)
-    print(idx)
     return idx

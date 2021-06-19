@@ -11,7 +11,7 @@ INF = 10000
 error = 0
 
 
-def get_frame(vidname,pathname):  # 모든 프레임을 다 저장. 따라서 경량화 하여 오버헤드 줄일 수 있다.
+def get_frame(pathname):  # 모든 프레임을 다 저장. 따라서 경량화 하여 오버헤드 줄일 수 있다.
     vidcap = cv2.VideoCapture(pathname)
     frame = []
 
@@ -160,6 +160,5 @@ def get_head(posepoints):
     r_ear = posepoints[1][18]
     
     size = get_distan(l_ear,r_ear)
-    print(size)
     return int(size)
 

@@ -42,15 +42,17 @@ def cut_img(posepoints, pose_img, pose_index, dst_size = 300):
             haf_size = small_side
             roi = img[int(y - haf_size):int(y + haf_size), int(x - haf_size):int(x + haf_size)].copy()
             img = roi.copy()
+            pose_img[idx] = img
         else:
             roi = img[int(y-haf_size):int(y+haf_size), int(x-haf_size):int(x+haf_size)].copy()
             #        [y시작:y끝             ,x시작:x끝]
             img = roi.copy()
             img = imutils.resize(img, width=600)
+            pose_img[idx] = img
         #cv2.imshow("new" + num, img)
     cv2.waitKey()
     cv2.destroyAllWindows()
-
+    return pose_img
 
 def get_center(point1, point2):
     x1 = point1.get('x')
@@ -271,7 +273,7 @@ def draw_finish(img, posepoint):
     draw_angle(posepoint[12], posepoint[13], posepoint[14], img)  # 좌측(그림에서 우측)무릎의 굽혀짐
 
 
-def draw_image(posepoints,pose_img, pose_idx):
+def draw_image(pose_img, pose_idx,posepoints):
     adress_idx = pose_idx[0]
     takeAway_idx = pose_idx[1]
     top_idx = pose_idx[2]
@@ -279,7 +281,6 @@ def draw_image(posepoints,pose_img, pose_idx):
     impact_idx = pose_idx[4]
     follow_through = pose_idx[5]
     finish = pose_idx[6]
-
     draw_adress(pose_img[0], posepoints[adress_idx])
     draw_takeAway(pose_img[1], posepoints[takeAway_idx])
     draw_top(pose_img[2], posepoints[top_idx])

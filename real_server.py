@@ -17,8 +17,10 @@ from module.draw import *
 from module.file import *
 from module.set_data import *
 score = 100
+feedback_list = []
 def main(URL,userid):
     global score
+    global feedback_list
     #date = os.system('date')
     time.sleep(2)
     downloadFile(URL)
@@ -33,7 +35,7 @@ def main(URL,userid):
     pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
     draw_image(pose_img, pose_idx, posepoints)  # 골격 그리기
     image = cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
-    score = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
+    score, feedback_list = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
     makeImageFile(image,URL,userid)
 app = Flask(__name__)
 @app.route('/db', methods = ['GET', 'POST'])
@@ -56,11 +58,15 @@ def video(msg_received):
     videoURL = msg_received["URL"]
 
     try:
-        time.sleep(2)
+        time.sleep(5)
         downloadFile(videoURL)
         createFolder('./' + userid)
         main(videoURL,userid)
-        return {"score": score}
+        return {"score" : score , "chiken_wing" : feedback_list[0], "body_sway" : feedback_list[1], "finish_advice" : feedback_list[2], "add_advice1" : feedback_list[3],
+                "add_advice2" : feedback_list[4], "add_advice3" : feedback_list[5], "taway_advice" : feedback_list[6], "top_advice1" : feedback_list[7],
+                "top_advice2" : feedback_list[8], "top_advice3" : feedback_list[9], "down_advice" : feedback_list[10], "imp_advice1" : feedback_list[11],
+                "imp_advice2" : feedback_list[12], "imp_advice3" : feedback_list[13], "slice_advice" : feedback_list[14], "thu_advice1" : feedback_list[15],
+                "thu_advice2" : feedback_list[16], "thu_advice3" : feedback_list[17]}
     except Exception as e:
         print("Error while inserting the new record :", repr(e))
         return "failure"

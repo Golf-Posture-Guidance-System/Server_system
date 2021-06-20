@@ -124,7 +124,8 @@ def check_topswing(posepoints, pose_idx):
     r_ear = top_point[0]
     l_wrist = top_point[7]
     l_arm_angle = abs(get_angle(top_point[5], top_point[6], top_point[7]))
-    r_leg_angle = abs(get_angle(top_point[9],top_point[10],top_point[11]))
+    l_leg_angle = abs(get_angle(top_point[12], top_point[13], top_point[14]))
+    slope = get_slope(neck, waist)
     pelvis_width = top_point[12].get('x') - top_point[9].get('x')
     knee_width = top_point[13].get('x') - top_point[10].get('x')
 
@@ -141,9 +142,9 @@ def check_topswing(posepoints, pose_idx):
         deduction = int(dp1 + dp2)
         top_advice2 = "탑스윙 시 양 손을 머리 위로 올리고 팔을 쭉 편 상태로 스윙하세요."
 
-    # 다리 각도 체크 : 오른쪽 다리는 안쪽으로 굽혀 있어야 하고(180도 이내) 왼쪽 다리가 지나치게 구부려져
-                        #오른쪽 무릎과 왼쪽 무릎이 가까이 맞닿은 상태가 되지 않아야 한다.
-    if r_leg_angle > 180 or knee_width < pelvis_width :
+    # 다리 각도 체크 : 왼쪽 다리를 굽히지만, 왼쪽 다리가 지나치게 구부려져
+                # 오른쪽 무릎과 왼쪽 무릎이 가까이 맞닿은 상태가 되지 않아야 한다.
+    if l_leg_angle > 170 or knee_width < pelvis_width :
         deduction += 5 # 기본 차감
         dp1 = 180 - r_leg_angle
         dp2 = knee_width
@@ -159,12 +160,15 @@ def check_downswing(posepoints, pose_idx):
 
     down_point = posepoints[down]
     right_arm_angle = abs(get_angle(down_point[2], down_point[3], down_point[4]))
+    right_leg_angle = 360 - abs(get_angle(down_point[9], down_point[10], down_point[11]))
     # early release 체크로 다운스윙시 오른팔의 각도가 빨리 풀리면 안된다. 탑스윙에서 오른팔 각도를 최대한 유지해야함
     if right_arm_angle > 105 : #오른쪽 팔꿈치의 변화량 최대 15도(그 이상일시 early release 발생)
         dp = (right_arm_angle - 105) * 0.7
         deduction += int(dp)
         down_advice = "다운스윙 시 오른쪽 팔이 빨리 풀리는 early release가 발생했습니다."
-
+    if 360 - right_leg_angle > 180 : #체중이 왼쪽으로 쏠리면서 오른쪽 다리는 굽혀져야 함
+        deduction += 5
+        down_advice2 = "오다른쪽 다리가 펴져있습니다. 체중을 왼쪽에 싣고 오른쪽 다리는 굽히세요."
 
     return -deduction
 
@@ -192,9 +196,9 @@ def check_impact(posepoints, pose_idx):
         deduction += 7
         imp_advice2 = "무게중심이 오른발에 쏠렸습니다. 왼쪽에 무게중심을 두세요."
 
-    if right_leg_angle > 180 : #오른쪽 다리가 둔각이면 잘못된 자세. 왼쪽으로 굽혀야함
+    if 360 - right_leg_angle > 180 : #오른쪽 다리가 둔각이면 잘못된 자세. 왼쪽으로 굽혀야함
         deduction += 5
-        imp_advice3 = "오른쪽 무릎이 왼쪽 방향이 아닌 반대방향으로 굽혀져 있습니다. "
+        imp_advice3 = "오른쪽 무릎이 펴져있습니다. 무릎을 굽히고 왼쪽에 무게를 두세요."
 
     return -deduction
 

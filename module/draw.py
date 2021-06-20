@@ -95,6 +95,37 @@ def draw_angle(p1, p2, p3, img):
     cv2.ellipse(img, (px2, py2), (10, 10), circle_angle, start_angle, end_angle, black_color, 2)
     return 1  # 그리기 성공
 
+def draw_angle2(p1, p2, p3, img):
+    red_color = (0, 0, 255)
+    black_color = (0, 0, 0)
+
+    px2 = p2.get('x')
+    py2 = p2.get('y')
+    px2 = int(px2)
+    py2 = int(py2)
+    px1 = p1.get('x')
+    py1 = p1.get('y')
+    px3 = p1.get('x')
+    py3 = p3.get('y')
+
+    if (px1 == 0 or py1 == 0 or px2 == 0 or py2 == 0 or px3 == 0 or py3 == 0):
+        # 0일경우는 골격이 가려지거나 프레임이 좋지않아 인식되지않은 경우 이므로  그리지 않는다.
+        return 0  # 그리기 실패
+
+    circle_angle = 0
+    angle = 360 - abs(get_angle(p1, p2, p3))
+
+    start_angle = get_slope(p2, p3)
+    end_angle = get_slope(p2, p1)
+    if (start_angle - end_angle) > 180:
+        tmp = start_angle
+        start_angle = end_angle
+        end_angle = tmp  # swap
+        circle_angle = -180
+
+    cv2.putText(img, str(int(angle)), (px2 - 50, py2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
+    cv2.ellipse(img, (px2, py2), (10, 10), circle_angle-180, start_angle , end_angle, black_color, 2)
+    return 1  # 그리기 성공
 
 def draw_line(p1, p2, img, color):
     sx = int(p1.get('x'))
@@ -118,40 +149,54 @@ def draw_point_line(p1, p2, img):  # 점선 그리기 하려고햇으나 ..
     cv2.line(img, (sx, sy), (fx, fy), grey_color, 2, 8)
 
 
-def draw_adress(img, posepoint):  # 어드래스 이미지 골격을 그리는 함수
+def draw_address(img, posepoint):  # 어드래스 이미지 골격을 그리는 함수
     red_color = (0, 0, 255)
     black_color = (0, 0, 0)
     blue_color = (255, 165, 0)
+    yellow_color = (0, 255, 255)
 
     lsx = int(posepoint[2].get('x'))  # 왼어깨x좌표 아래쭉 어깨
-
     rsx = int(posepoint[5].get('x'))  # 오른쪽 어깨
     rsy = int(posepoint[5].get('y') + 50)
     rsy2 = int(posepoint[5].get('y') - 50)
     lsy = int(posepoint[2].get('y') + 50)
     lsy2 = int(posepoint[2].get('y') - 50)
+    angle = abs(get_angle(posepoint[2], posepoint[5], posepoint[7]))
+    start_angle = get_slope(posepoint[5], posepoint[7])
+    end_angle = get_slope(posepoint[5], posepoint[2])
 
-    left_angle = get_angle(posepoint[5], posepoint[2], posepoint[4])
-    right_angle = get_angle(posepoint[2], posepoint[5], posepoint[7])
-
-    draw_line(posepoint[2], posepoint[5], img, red_color)
+    draw_line(posepoint[2], posepoint[5], img, yellow_color)
     draw_line(posepoint[5], posepoint[7], img, red_color)
     draw_line(posepoint[2], posepoint[4], img, red_color)
     draw_line(posepoint[22], posepoint[19], img, blue_color)
     draw_angle(posepoint[1], posepoint[2], posepoint[4], img)
-    draw_angle(posepoint[2], posepoint[5], posepoint[7], img)
+
+    cv2.putText(img, str(int(angle)), (rsx + 30, rsy-60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
+    cv2.ellipse(img, (rsx, rsy-50), (10, 10), -180 , start_angle - 90, end_angle + 90, black_color, 2)
+
     cv2.line(img, (rsx, rsy), (rsx, rsy2), blue_color, 2)  # 발 너비와 어깨 너비 비교
     cv2.line(img, (lsx, lsy), (lsx, lsy2), blue_color, 2)
 
 
 def draw_takeAway(img, posepoint):
     red_color = (0, 0, 255)
+    black_color = (0, 0, 0)
     orange_color = (0, 165, 255)
     yellow_color = (0, 255, 255)
+    rsx = int(posepoint[5].get('x'))
+    rsy = int(posepoint[5].get('y'))
+
+    angle = abs(get_angle(posepoint[2], posepoint[5], posepoint[7]))
+    start_angle = get_slope(posepoint[5], posepoint[7])
+    end_angle = get_slope(posepoint[5], posepoint[2])
 
     draw_line(posepoint[2], posepoint[5], img, red_color)
     draw_line(posepoint[5], posepoint[7], img, red_color)
     draw_line(posepoint[2], posepoint[4], img, red_color)
+    draw_angle(posepoint[1], posepoint[2], posepoint[4],img)
+    cv2.putText(img, str(int(angle)), (rsx + 30, rsy), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
+    cv2.ellipse(img, (rsx, rsy ), (10, 10), -180, start_angle - 90, end_angle + 90, black_color, 2)
+
     # 팔 삼각형
 
     # 실제 팔의 라인
@@ -167,62 +212,83 @@ def draw_takeAway(img, posepoint):
 def draw_top(img, posepoint):
     red_color = (0, 0, 255)
     blue_color = (255, 165, 0)
+    orange_color = (0, 165, 255)
+    yellow_color = (0, 255, 255)
 
-    draw_line(posepoint[1], posepoint[8], img, blue_color)
-    draw_line(posepoint[19], posepoint[22], img, blue_color)
+    angle = 360 - abs(get_angle(posepoint[2], posepoint[3], posepoint[4]))
     #척추와 골반
+    draw_line(posepoint[1], posepoint[8], img, blue_color)
+    draw_line(posepoint[9], posepoint[12], img, blue_color)
+
+    #어깨
+    draw_line(posepoint[2], posepoint[5], img, red_color)
+    draw_line(posepoint[5], posepoint[6], img, orange_color)
+    draw_line(posepoint[6], posepoint[7], img, orange_color)
+    draw_line(posepoint[2], posepoint[3], img, yellow_color)
+    draw_line(posepoint[3], posepoint[4],img, yellow_color)
+    draw_angle(posepoint[5], posepoint[6], posepoint[7], img)
+    draw_angle(posepoint[2], posepoint[3], posepoint[4], img)
+
+    #왼쪽 다리 굽혀짐 표시
+    draw_line(posepoint[12], posepoint[13], img, red_color)
+    draw_line(posepoint[13], posepoint[14], img, red_color)
 
 
-    #오른 다리 굽혀짐 표시
-    draw_line(posepoint[9], posepoint[10], img, red_color)
-    draw_line(posepoint[10], posepoint[11], img, red_color)
-    draw_angle(posepoint[9], posepoint[10], posepoint[11], img)
+
 
 
 def draw_down(img, posepoint):
-    result = img
+    blue_color = (255, 165, 0)
     red_color = (0, 0, 255)
-    orange_color = (255, 165, 0)
-
-    rhx = int(posepoint[12].get('x'))  # 오른쪽 골반 x 좌표
-    rhy = int(posepoint[12].get('y'))
-    rkx = int(posepoint[13].get('x'))  # 오른쪽 무릎
-    rky = int(posepoint[13].get('y'))
-    rax = int(posepoint[14].get('x'))  # 오른쪽 발목
-    ray = int(posepoint[14].get('y'))
+    orange_color = (0, 165, 255)
 
     # 척추와 골반--
-    draw_line(posepoint[1], posepoint[8], img, orange_color)
-    draw_line(posepoint[9], posepoint[12], img, orange_color)
+    draw_line(posepoint[1], posepoint[8], img, blue_color)
+    draw_line(posepoint[9], posepoint[12], img, blue_color)
+
+    # 오른쪽 팔
+    draw_line(posepoint[2], posepoint[3], img, orange_color)
+    draw_line(posepoint[3], posepoint[4], img, orange_color)
+    draw_angle(posepoint[2], posepoint[3], posepoint[4], img)
 
     #오른 다리 굽혀짐 표시
     draw_line(posepoint[9], posepoint[10], img, red_color)
     draw_line(posepoint[10], posepoint[11], img, red_color)
-    draw_angle(posepoint[9], posepoint[10], posepoint[11], img)
+    draw_angle2(posepoint[9], posepoint[10], posepoint[11], img)
 
 
 def draw_impact(img, posepoint):
     red_color = (0, 0, 255)
-    orange_color = (255, 165, 0)
+    blue_color = (255, 165, 0)
+    orange_color = (0, 165, 255)
+    black_color = (0, 0, 0)
 
-    lhx = int(posepoint[9].get('x'))  # 왼쪽 골반 x 좌표
-    lhy = int(posepoint[9].get('y'))
-    lkx = int(posepoint[10].get('x'))  # 왼쪽 무릎
-    lky = int(posepoint[10].get('y'))
-    lax = int(posepoint[11].get('x'))  # 왼쪽 발목
-    lay = int(posepoint[11].get('y'))
+    neck = posepoint[1]
+    waist = posepoint[8]
+    px = int(waist.get('x'))
+    py = int(waist.get('y'))
 
-    left_leg_angle = get_angle(posepoint[9], posepoint[10], posepoint[11])
-    start_angle = (math.atan2(lay - lky, lax - lkx)) * (180 / math.pi)
-    end_angle = (math.atan2(lhy - lky, lhx - lkx)) * (180 / math.pi)
+    x = neck.get('x') - waist.get('x')
+    y = neck.get('y') - waist.get('y')
+
+    point = {'x': waist.get('x'), 'y': neck.get('y')}
+    angle = math.atan2(y, x) * 180 / math.pi
+    angle = 90 - abs(angle)
+
 
     draw_line(posepoint[12], posepoint[13], img, red_color)
     draw_line(posepoint[13], posepoint[14], img, red_color)
 
+
     # 척추와 골반--
-    draw_line(posepoint[1], posepoint[8], img, orange_color)
-    draw_line(posepoint[9], posepoint[12], img, orange_color)
-    draw_angle(posepoint[12], posepoint[13], posepoint[14], img)  # 좌측(그림에서 우측)무릎의 굽혀짐
+    draw_line(point, posepoint[8], img, orange_color)
+    cv2.putText(img, str(int(angle)), (px+20,py-90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, black_color, 2)
+    cv2.ellipse(img, (px, py-90), (10, 10), 270-angle , get_slope(point,waist), get_slope(neck, waist), red_color, 2)
+    draw_line(posepoint[1], posepoint[8], img, blue_color)
+    draw_line(posepoint[9], posepoint[12], img, blue_color)
+    draw_angle(posepoint[12], posepoint[13], posepoint[14], img)
+
+
 
 
 def draw_follow_through(img, posepoint):
@@ -241,6 +307,13 @@ def draw_follow_through(img, posepoint):
 
     draw_angle(posepoint[5], posepoint[6], posepoint[7], img)
     draw_angle(posepoint[1], posepoint[5], posepoint[6], img)
+
+    #다리 --
+    draw_line(posepoint[9],posepoint[11], img, orange_color)
+    draw_angle2(posepoint[9], posepoint[10], posepoint[11], img)
+    draw_line(posepoint[12], posepoint[14], img, orange_color)
+    draw_angle(posepoint[12], posepoint[13], posepoint[14], img)
+
 
 
 def draw_finish(img, posepoint):

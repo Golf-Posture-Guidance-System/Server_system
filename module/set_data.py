@@ -57,7 +57,7 @@ def slope(p1, p2):
     if (p1.get('x') == p2.get('x')):
         return 0
     else:
-        return (p2.get('y') - p1.get('y')) / (p2.get('x') - p1.get('y'))
+        return (p2.get('y') - p1.get('y')) / (p2.get('x') - p1.get('x'))
 
 
 def get_slope_R(x1, y1, x2, y2):  # 두 점의 좌표를 가지고 수직선과의 각도를 구하는 함수

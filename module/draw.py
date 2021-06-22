@@ -354,7 +354,7 @@ def draw_image(pose_img, pose_idx,posepoints):
     impact_idx = pose_idx[4]
     follow_through = pose_idx[5]
     finish = pose_idx[6]
-    draw_adress(pose_img[0], posepoints[adress_idx])
+    draw_address(pose_img[0], posepoints[adress_idx])
     draw_takeAway(pose_img[1], posepoints[takeAway_idx])
     draw_top(pose_img[2], posepoints[top_idx])
     draw_down(pose_img[3], posepoints[down_idx])

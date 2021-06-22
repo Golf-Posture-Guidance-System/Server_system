@@ -180,6 +180,7 @@ def pose_classifier(posepoints):
     r_error = get_error(ry_values)
     size = len(rx_values)
     last_frame = rx_values[size - 1]
+
     for i in range(0, size):
         cur_frmae_idx = rx_values[i]
         next_frame_idx = rx_values[i + 1]
@@ -218,6 +219,7 @@ def pose_classifier(posepoints):
 
     plt.legend(['left', 'right'])
     #plt.show()
+
 
     # ----------2번 탑스윙 재 계산 ------------
     impact = idx[4]

@@ -13,7 +13,7 @@ def check_chiken_wing(posepoints, pose_idx):
     end_angle = get_slope(follow_through[6], follow_through[5])
     if (start_angle - end_angle) > 180:
         if angle > 175: #왼팔이 175정도라면 충분히 펴져있다고 판단.
-            return 0
+            return 0, chiken_wing
         deduction += 10
         bent = 180-angle #팔이 굽혀진 정도
         deduction += int(bent / 180 * 20)
@@ -254,6 +254,7 @@ def check_finish(posepoints, pose_idx):
         distortion = abs(90 + slope)  #어깨 뒤틀림 정도
         deduction += int(distortion/90 * 20)
         finish_advice = "피니쉬를 할때 몸을 더 비튼다면 비거리가 증가할거예요."
+        print(finish_advice)
     return -deduction, finish_advice
 
 

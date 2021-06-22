@@ -132,6 +132,7 @@ def check_topswing(posepoints, pose_idx):
     top_advice1 = ""
     top_advice2 = ""
     top_advice3 = ""
+    top_advice4 = ""
     top_point = posepoints[top]
     
     r_ear = top_point[0]
@@ -187,6 +188,7 @@ def check_downswing(posepoints, pose_idx):
     deduction = 0  # 100점에서 차감할 점수의 초기값(음수로 리턴 될 스코어)
     
     down_advice = ""
+    down_advice2 = ""
     down_point = posepoints[down]
     top_point = posepoints[top]
     right_arm_angle = abs(get_angle(down_point[2], down_point[3], down_point[4]))
@@ -323,8 +325,8 @@ def assess_pose(posepoints, pose_idx):
     fscore, finish_advice = check_finish(posepoints, pose_idx)
     ascore,add_advice1,add_advice2,add_advice3 = check_address(posepoints, pose_idx)
     tscore , taway_advice= check_takeaway(posepoints, pose_idx)
-    topscore ,top_advice1, top_advice2, top_advice3= check_topswing(posepoints, pose_idx)
-    dscore, down_advice = check_downswing(posepoints, pose_idx)
+    topscore ,top_advice1, top_advice2, top_advice3, top_advice4 = check_topswing(posepoints, pose_idx)
+    dscore, down_advice, down_advice2 = check_downswing(posepoints, pose_idx)
     iscore, imp_advice1, imp_advice2, imp_advice3 = check_impact(posepoints, pose_idx)
     slicescore ,slice_advice= check_slice(posepoints, pose_idx)
     truscore ,thu_advice1, thu_advice2, thu_advice3 = check_followthru(posepoints, pose_idx)
@@ -332,7 +334,7 @@ def assess_pose(posepoints, pose_idx):
     score_list = [ascore, tscore, topscore + slicescore, dscore, iscore, truscore + cscore + bscore, fscore, additional]  # 가장 심각한 실수가 어떤것지 찾기위해
     feedback_list = [chiken_wing ,body_sway, finish_advice, add_advice1, add_advice2, add_advice3, taway_advice,
                      top_advice1, top_advice2, top_advice3, down_advice, imp_advice1, imp_advice2, imp_advice3,
-                     slice_advice, thu_advice1, thu_advice2, thu_advice3]
+                     slice_advice, thu_advice1, thu_advice2, thu_advice3, down_advice2, top_advice4]
     worst = score_list.index(min(score_list))  # 사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
     score = sum(score_list[0:3])
     if score >= 0:

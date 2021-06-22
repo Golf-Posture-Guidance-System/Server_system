@@ -147,21 +147,28 @@ def pose_classifier(posepoints):
     lx_values, ly_values, rx_values, ry_values = get_axis(left_wrist, right_wrist)
     slopes = []
     slope = 0
-    for i in range(0, len(rx_values)): #bode25 4번 관절로 판단.
-        if (len(rx_values) - 1 == i):  # 마지막 점의 경우 변화량을 계산할 필요가 없음
+    size = len(rx_values)
+    last_frame = rx_values[size - 1]
+    for i in range(0, len(rx_values)): #body25 4번 관절로 판단.
+        cur_frmae_idx = rx_values[i]
+        next_frame_idx = rx_values[i + 1]
+
+        if (last_frame - 2 == cur_frmae_idx):  # 마지막 점의 경우 변화량을 계산할 필요가 없음
             slopes.append(slope)
             break
         else:
-            dx = rx_values[i + 1] - rx_values[i]
-            dy = ry_values[i + 1] - ry_values[i]
+            dx = next_frame_idx - cur_frmae_idx  # 손목위치가 있는 인덱스
+            cur_locate = posepoints[cur_frmae_idx][4].get('x')  # 오른 손목의 위치....
+            next_locate = posepoints[next_frame_idx][4].get('x')
+            dy = next_locate - cur_locate  # 프레임 인덱스
             slope = dy / dx
 
             cur_frmae_idx = rx_values[i]
-            if (slope <= -8 and idx[0] == -1):  # 좌측으로 움직이면 x좌표의 변화량은 감소
+            if (slope <= -6 and idx[0] == -1):  # 좌측으로 움직이면 x좌표의 변화량은 감소
                 dy_left = ly_values[cur_frmae_idx + 1] - ly_values[cur_frmae_idx]
                 slope_left = dy_left / dx
-                if (slope_left <= -8):
-                    idx[0] = rx_values[i - 1]
+                if (slope_left <= -6):
+                    idx[0] = cur_frmae_idx
                     break
             slopes.append(slope)
 
@@ -180,7 +187,6 @@ def pose_classifier(posepoints):
     r_error = get_error(ry_values)
     size = len(rx_values)
     last_frame = rx_values[size - 1]
-
     for i in range(0, size):
         cur_frmae_idx = rx_values[i]
         next_frame_idx = rx_values[i + 1]
@@ -218,8 +224,7 @@ def pose_classifier(posepoints):
     plt.scatter(rx_values, ry_values)
 
     plt.legend(['left', 'right'])
-    #plt.show()
-
+    plt.show()
 
     # ----------2번 탑스윙 재 계산 ------------
     impact = idx[4]
@@ -257,4 +262,5 @@ def pose_classifier(posepoints):
     idx[3] = int((idx[4] - idx[2]) * 0.666666) + idx[2]  # 다운 2/3지점으로 설정
     idx[5] = int((idx[6] - idx[4]) * 0.333333) + idx[4]  # 팔로스루
     idx = to_wrist_accuracy(posepoints, idx)
+    print(idx)
     return idx

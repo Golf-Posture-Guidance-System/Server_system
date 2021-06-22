@@ -66,7 +66,7 @@ def video(msg_received):
                 "add_advice2" : feedback_list[4], "add_advice3" : feedback_list[5], "taway_advice" : feedback_list[6], "top_advice1" : feedback_list[7],
                 "top_advice2" : feedback_list[8], "top_advice3" : feedback_list[9], "down_advice" : feedback_list[10], "imp_advice1" : feedback_list[11],
                 "imp_advice2" : feedback_list[12], "imp_advice3" : feedback_list[13], "slice_advice" : feedback_list[14], "thu_advice1" : feedback_list[15],
-                "thu_advice2" : feedback_list[16], "thu_advice3" : feedback_list[17]}
+                "thu_advice2" : feedback_list[16], "thu_advice3" : feedback_list[17], "down_advice2" : feedback_list[18], "top_advice4" : feedback_list[19]}
     except Exception as e:
         print("Error while inserting the new record :", repr(e))
         return "failure"

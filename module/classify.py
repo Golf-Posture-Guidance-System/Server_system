@@ -224,7 +224,7 @@ def pose_classifier(posepoints):
     plt.scatter(rx_values, ry_values)
 
     plt.legend(['left', 'right'])
-    plt.show()
+    #plt.show()
 
     # ----------2번 탑스윙 재 계산 ------------
     impact = idx[4]

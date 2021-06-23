@@ -207,7 +207,7 @@ def pose_classifier(posepoints):
                     idx[1] = cur_frmae_idx + 2
                     continue
 
-            if (idx[1] != -1) and idx[1] < cur_frmae_idx and idx[2] == -1 and slope >= 20:  # 탑 검사
+            if (idx[1] != -1) and idx[1] < cur_frmae_idx and idx[2] == -1 and slope >= 13:  # 탑 검사
                 dy_left = posepoints[next_frame_idx][7].get('y') - posepoints[cur_frmae_idx][7].get('y')
                 slope_left = dy_left / dx
                 if slope_left > 0:

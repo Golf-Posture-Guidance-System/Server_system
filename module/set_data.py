@@ -38,7 +38,7 @@ def get_keypoints(filename, size):
             posepoint = []
 
             if not json_data['people']:  # openpose의 output은 물체에 사람이 잡히지 않을경우 poeple배열을 비운다. 빈 리스트인지 확인하는 코드
-                return posepoints
+                return posepoints, -1
 
             for j in range(75):  # 관절개수가 25개(0~24)
                 if j % 3 == 0:  # 0번째 자리
@@ -50,7 +50,7 @@ def get_keypoints(filename, size):
                     posepoint.append(keypoint.copy())  # 리스트는 깊은복사라서.. copy로
                     # print(keypoint)
         posepoints.append(posepoint.copy())
-    return posepoints
+    return posepoints, 1
 
 
 def slope(p1, p2):

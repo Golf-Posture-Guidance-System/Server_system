@@ -68,7 +68,7 @@ def check_slice(posepoints, pose_idx):
         deduction += int(dp)
         slice_advice = "탑스윙 시 오른쪽 팔꿈치가 직각을 유지하지 않습니다. 이는 슬라이스를 유발합니다."
         print(slice_advice)
-
+    print("s : " + str(deduction))
     return -deduction, slice_advice
 
 def check_address(poseoints, pose_idx):
@@ -177,7 +177,7 @@ def check_topswing(posepoints, pose_idx):
         deduction += 10
         deduction += int(gradient*0.5)
         top_advice4 = "척추의 축이 기울어져 있습니다. 하체 뒤로 더 빼주세요."
-    
+    print("t : " + str(deduction))
     return -deduction, top_advice1, top_advice2, top_advice3, top_advice4
 
 def check_downswing(posepoints, pose_idx):
@@ -355,6 +355,7 @@ def assess_pose(posepoints, pose_idx):
 
 #----------- 점수 계산 --------------
     total_score = 100
+    print(score_list)
     for i in score_list:
         total_score = total_score + i
         # 100점에서 발생한 실수만큼 뺀다

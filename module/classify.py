@@ -171,7 +171,6 @@ def pose_classifier(posepoints):
                     idx[0] = cur_frmae_idx
                     break
             slopes.append(slope)
-
     # -------------- 손목의 y좌표 변화량 감지를 통해 포즈 분류 ----
     # 테이커웨이,스윙 탑,입펙트값을 먼저 구한다.
 
@@ -219,7 +218,8 @@ def pose_classifier(posepoints):
                 break
 
             slopes.append(slope)
-
+    if(idx[0] == -1):
+        return
     plt.scatter(lx_values, ly_values)
     plt.scatter(rx_values, ry_values)
 
@@ -262,5 +262,7 @@ def pose_classifier(posepoints):
     idx[3] = int((idx[4] - idx[2]) * 0.666666) + idx[2]  # 다운 2/3지점으로 설정
     idx[5] = int((idx[6] - idx[4]) * 0.333333) + idx[4]  # 팔로스루
     idx = to_wrist_accuracy(posepoints, idx)
-    print(idx)
-    return idx
+    for i in range(0, 7):
+        if(idx[i] == -1):
+            return idx, -1
+    return idx, 1

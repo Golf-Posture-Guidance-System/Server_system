@@ -11,7 +11,7 @@ import cv2
 import json
 import math
 import sys
-from module.assess import *
+from module.new_assess import *
 from module.classify import *
 from module.draw import *
 from module.file import *
@@ -22,8 +22,9 @@ feedback_list = []
 error = 1
 
 def main(URL,userid):
-    global score
+    global real_total
     global feedback_list
+    global convert_score_list
     global error
     #date = os.system('date')
     time.sleep(2)
@@ -32,7 +33,7 @@ def main(URL,userid):
     filename = 'TestGolf'
     vidname = filepath + filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-    path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0')
+    path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0 --frame_rotate=270')
     size,frame=get_frame(vidname)
     posepoints ,error = get_keypoints(filename,size)
     if (error == -1):
@@ -43,7 +44,7 @@ def main(URL,userid):
     pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
     draw_image(pose_img, pose_idx, posepoints)  # 골격 그리기
     image = cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
-    score, feedback_list, total_score= assess_pose(posepoints, pose_idx)  # 포즈 평가하기
+    real_total, convert_score_list, feedback_list = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
     makeImageFile(image,URL,userid)
 app = Flask(__name__)
 @app.route('/db', methods = ['GET', 'POST'])

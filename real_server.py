@@ -33,7 +33,7 @@ def main(URL,userid):
     filename = 'TestGolf'
     vidname = filepath + filename+'.mp4'
     #아래 주석풀면 gpu 과부하걸리니 최초 실행시만
-    path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0 --frame_rotate=270')
+    path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0 --frame_rotate=90')
     size,frame=get_frame(vidname)
     posepoints ,error = get_keypoints(filename,size)
     if (error == -1):
@@ -74,13 +74,14 @@ def video(msg_received):
         if(error == -1):
             return {"error" : error}
         elif(error == 1):
-            return {"adressscore" : 100 + score[0] , "takebackscore" : 100 + score[1] , "topascore" : 100 + score[2] , "dscore" : 100 + score[3] , "iascore" : 100 + score[4] ,
-                    "truascore" : 100 + score[5] , "fscore" : 100 + score[6] ,"chiken_wing" : feedback_list[0], "body_sway" : feedback_list[1], "finish_advice" : feedback_list[2],
-                    "add_advice1" : feedback_list[3], "add_advice2" : feedback_list[4], "add_advice3" : feedback_list[5], "taway_advice" : feedback_list[6], "score" : total_score,
-                    "top_advice1" : feedback_list[7], "top_advice2" : feedback_list[8], "top_advice3" : feedback_list[9], "down_advice" : feedback_list[10],
-                    "imp_advice1" : feedback_list[11], "imp_advice2" : feedback_list[12], "imp_advice3" : feedback_list[13], "slice_advice" : feedback_list[14],
-                    "thu_advice1" : feedback_list[15], "thu_advice2" : feedback_list[16], "thu_advice3" : feedback_list[17], "down_advice2" : feedback_list[18],
-                    "top_advice4" : feedback_list[19], "worst" : feedback_list[20], "error" : error}
+            return {"adressscore" : convert_score_list[0] , "takebackscore" : convert_score_list[1] , "topascore" : convert_score_list[2] ,
+                    "dscore" : convert_score_list[3] , "iascore" : convert_score_list[4] , "truascore" : convert_score_list[5] , "fscore" : convert_score_list[6] ,
+                    "add_advice1" : feedback_list[0], "add_advice2" : feedback_list[1], "add_advice3" : feedback_list[2],
+                    "taway_advice" : feedback_list[3], "top_advice1" : feedback_list[4], "top_advice2" : feedback_list[5], "top_advice3" : feedback_list[6], "score" : real_total,
+                    "top_advice4" : feedback_list[7], "top_advice5" : feedback_list[8], "down_advice" : feedback_list[9], "down_advice2" : feedback_list[10],
+                    "imp_advice1" : feedback_list[11], "imp_advice2" : feedback_list[12], "imp_advice3" : feedback_list[13], "thu_advice1" : feedback_list[14],
+                    "thu_advice2" : feedback_list[15], "thu_advice3" : feedback_list[16],  "thu_advice4" : feedback_list[17], "thu_advice5" : feedback_list[18],
+                    "finish_advice1" : feedback_list[19], "finish_advice2" : feedback_list[20], "finish_advice3" : feedback_list[21], "worst" : feedback_list[22], "error" : error}
 
     except Exception as e:
         print("Error while inserting the new record :", repr(e))

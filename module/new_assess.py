@@ -333,7 +333,7 @@ def check_followthru(posepoints, pose_idx):
     convert_score = int(f_score / total * 100)
 
     print("follow : " + str(f_score)+','+str(convert_score))
-    return int(f_score),convert_score, thu_advice1, thu_advice2, thu_advice3
+    return int(f_score),convert_score, thu_advice1, thu_advice2, thu_advice3, thu_advice4, thu_advice5
 
 
 
@@ -393,13 +393,14 @@ def assess_pose(posepoints, pose_idx):
     topscore, top_convert, top_advice1, top_advice2, top_advice3, top_advice4, top_advice5 = check_topswing(posepoints, pose_idx)
     dscore, d_convert, down_advice, down_advice2 = check_downswing(posepoints, pose_idx)
     iscore, i_convert, imp_advice1, imp_advice2, imp_advice3 = check_impact(posepoints, pose_idx)
-    truscore, tru_convert,thu_advice1, thu_advice2, thu_advice3 = check_followthru(posepoints, pose_idx)
+    truscore, tru_convert,thu_advice1, thu_advice2, thu_advice3, thu_advice4, thu_advice5 = check_followthru(posepoints, pose_idx)
     fscore, finish_convert, finish_advice1, finish_advice2, finish_advice3 = check_finish(posepoints, pose_idx)
     score_list = [ascore, tscore, topscore, dscore,iscore,truscore,fscore]
     worst = score_list[0:7].index(min(score_list))
     convert_score_list = [a_convert, t_convert, top_convert, d_convert, i_convert, tru_convert, finish_convert]
     feedback_list = [add_advice1, add_advice2, add_advice3, taway_advice, top_advice1, top_advice2, top_advice3, top_advice4, top_advice5
-                     ,down_advice, down_advice2, imp_advice1, imp_advice2, imp_advice3, thu_advice1, thu_advice2, thu_advice3, finish_advice1, finish_advice2, finish_advice3,worst]
+                     ,down_advice, down_advice2, imp_advice1, imp_advice2, imp_advice3, thu_advice1, thu_advice2, thu_advice3, thu_advice4, thu_advice5, finish_advice1,
+                     finish_advice2, finish_advice3, worst]
 
     #총점 계산
     real_total = 0

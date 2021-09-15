@@ -2,7 +2,7 @@ from module.set_data import *
 from real_server import *
 import math
 total = 14.3
-px = 0.02645 #1픽셀 cm
+px = 0.02645 #1픽셀을 cm
 """총 7개의 기준(어드레스 - 피니쉬)을 각각 12.5 개의 비중으로 나눴으며, 
                                         각 기준마다 일정한 기준치를 두어 자세별 점수 계산"""
 

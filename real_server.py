@@ -37,15 +37,28 @@ def main(URL,userid):
     size,frame=get_frame(vidname)
     posepoints ,error = get_keypoints(filename,size)
     if (error == -1):
-        return
-    pose_idx ,error= pose_classifier(posepoints)  # 포즈 분류하기
-    if (error == -1):
-        return
-    pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
-    draw_image(pose_img, pose_idx, posepoints)  # 골격 그리기
-    image = cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
-    real_total, convert_score_list, feedback_list = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
-    makeImageFile(image,URL,userid)
+        path = os.system('../openpose/build/examples/openpose/openpose.bin --video ' '../openpose/examples/media/TestGolf.mp4 --write_json output/ --display 0 --render_pose 0')
+        size, frame = get_frame(vidname)
+        posepoints, error = get_keypoints(filename, size)
+        if (error == -1):
+            return
+        pose_idx, error = pose_classifier(posepoints)  # 포즈 분류하기
+        if (error == -1):
+            return
+        pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
+        draw_image(pose_img, pose_idx, posepoints)  # 골격 그리기
+        image = cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
+        real_total, convert_score_list, feedback_list = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
+        makeImageFile(image, URL, userid)
+    else :
+        pose_idx ,error= pose_classifier(posepoints)  # 포즈 분류하기
+        if (error == -1):
+            return
+        pose_img = cut_vid(frame, pose_idx)  # pose_img 는 리스트 입니다..
+        draw_image(pose_img, pose_idx, posepoints)  # 골격 그리기
+        image = cut_img(posepoints, pose_img, pose_idx, 0)  # 서버에 전송할 7가지 이미지 자르기(포즈 자세히 부분에 사용자에게 보여줄거)
+        real_total, convert_score_list, feedback_list = assess_pose(posepoints, pose_idx)  # 포즈 평가하기
+        makeImageFile(image,URL,userid)
 app = Flask(__name__)
 @app.route('/db', methods = ['GET', 'POST'])
 def chat():

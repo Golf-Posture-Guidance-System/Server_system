@@ -249,11 +249,11 @@ def check_impact(posepoints, pose_idx):
         print(imp_advice2)
 
     if right_leg_angle > 170:  # 오른쪽 다리가 펴져있지 않고 구부려져 있어야 함
-        ip_score2 = score_convert(170, right_leg_angle, 0.45)
+        ip_score2 = score_convert(170, right_leg_angle, 0.35)
         score += ip_score2
         imp_advice3 = "오른쪽 무릎이 펴져있습니다. 무릎을 굽히고 왼쪽에 무게를 두세요."
     else :
-        score += 0.45
+        score += 0.35
 
     i_score = round(score * total,1)
     convert_score = int(i_score / total * 100)

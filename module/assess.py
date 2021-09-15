@@ -346,26 +346,10 @@ def assess_pose(posepoints, pose_idx):
     additional = additional_point(posepoints, pose_idx)
     score_list = [ascore, tscore, topscore + slicescore, dscore, iscore, truscore + cscore + bscore, fscore,
                   additional]  # 가장 심각한 실수가 어떤것지 찾기위해
+    worst = score_list[0:7].index(min(score_list))  # 사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
     feedback_list = [chiken_wing, body_sway, finish_advice, add_advice1, add_advice2, add_advice3, taway_advice,
                      top_advice1, top_advice2, top_advice3, down_advice, imp_advice1, imp_advice2, imp_advice3,
-                     slice_advice, thu_advice1, thu_advice2, thu_advice3, down_advice2, top_advice4]
-    worst = score_list.index(min(score_list))  # 사용자에게 보여줄 가장 심한 실수의 인덱스를 찾는다.
-    score = sum(score_list[0:3])
-    if score >= 0:
-        print("완벽한 스윙이네요!")
-    elif worst == 0:  # check_chiken_wing 이 가장 심각한 실수
-        # 서버에 문제가 있는 헤드업 사진을 전송하기
-        # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
-        print("치킨윙이 발생했네요 팔로스루시 팔을 폅시다.")
-        a = 0
-    elif worst == 1:  # 바디 스웨이가 가장 심각한 실수
-        # 서버에 문제가 있는 헤드업 사진을 전송하기
-        # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
-        print("바디 스웨이가 발생했네요 스윙시에 몸이 자꾸 움직이면 정확도를낮춥니다.")
-    elif worst == 2:  # 아쉬운 피니쉬동작이 심각한 경우
-        # 서버에 문제가 있는 헤드업 사진을 전송하기
-        # 의견 : 임팩트 이후에 헤드업이 발생한 부분에 그림더 그려줘서 보내는 방식
-        print("피니쉬를 할때 몸을 더 비튼다면 비거리가 증가할거예요 .")
+                     slice_advice, thu_advice1, thu_advice2, thu_advice3, down_advice2, top_advice4, worst]
 
     # ----------- 점수 계산 --------------
     total_score = 100
@@ -376,4 +360,4 @@ def assess_pose(posepoints, pose_idx):
 
     print("당신의 포즈 점수는")
     print(total_score)
-    return total_score, feedback_list
+    return score_list, feedback_list, total_score
